@@ -486,3 +486,65 @@ failed-listener, shortcut-cleanup) PLUS the L5 ordering tests that pass even
 in RED because `startCrashReporter` is imported + called in main.ts ABOVE
 the `app.whenReady()` site (the stub throws at runtime, the static order is
 intact for the regression check).
+
+## L5-2 — 2026-05-17 — L5 GREEN run (forge package + make + e2e)
+
+```
+cd .../03_pocs/L5-packaging-signing-update
+
+# 1. Vitest after GREEN
+npx vitest run
+
+# 2. Packaging
+APPLE_ID= APPLE_PASSWORD= APPLE_TEAM_ID= APPLE_APP_SPECIFIC_PASSWORD= \
+  npm run package
+
+# 3. Make (DMG + ZIP)
+APPLE_ID= APPLE_PASSWORD= APPLE_TEAM_ID= APPLE_APP_SPECIFIC_PASSWORD= \
+  npm run make
+
+# 4. Playwright e2e (uses memoized package/make from above)
+npx playwright test
+```
+
+Output (excerpts):
+```
+# vitest
+ Test Files  15 passed (15)
+      Tests  126 passed (126)
+
+# package
+✔ Packaging for arm64 on darwin
+packaging:signing:skipped:no-credentials — see simulated-signing.md
+✔ Running postPackage hook
+
+# playwright
+  10 passed (12.7s)
+  1 skipped  ← BT-L5-4 @long-running universal binary
+```
+
+Bundle inspection:
+```
+out/L5-packaging-signing-update-darwin-arm64/
+  L5-packaging-signing-update.app/Contents/
+    _CodeSignature   Frameworks   Info.plist   MacOS   PkgInfo   Resources
+
+  Contents/Resources/app.asar  (asar archive present)
+  Contents/Info.plist:
+    CFBundleIdentifier      = com.agentuniversity.l5.packaging-signing-update
+    CFBundleURLSchemes      = electron-l5
+    CFBundleShortVersionString = 1.0.0
+    NSHumanReadableCopyright   = "Copyright (c) 2026 Agent University..."
+```
+
+Artifacts captured under `test-results/`:
+- `GREEN-vitest.log` — 126/126 passed
+- `GREEN-playwright.log` — 10/11 passed (1 skipped: universal)
+- `packaging-skip.log` — `packaging:signing:skipped:no-credentials` marker
+
+Behavioral status:
+- PASS: BT-L5-1, BT-L5-2, BT-L5-3, BT-L5-5, BT-L5-6, BT-L5-7, BT-L5-8,
+        BT-L5-9, BT-L5-10
+- SKIP @long-running: BT-L5-4 (universal binary; forge config supports it).
+- SKIP @signed-only (NOT in test suite, documented only): real
+  `codesign --verify` and `xcrun stapler validate` — require Apple Dev cert.

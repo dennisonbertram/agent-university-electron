@@ -2,12 +2,38 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <!-- RED skeleton.
-       GREEN adds: CFBundleURLTypes (electron-l5:// scheme),
-       CFBundleShortVersionString, NSHumanReadableCopyright. The packaged
-       Info.plist is produced by @electron/packager merging packagerConfig.
-       extendInfo with this template; the test reads the FINAL packaged plist
-       under out/<platform>-<arch>/<App>.app/Contents/Info.plist (BT-L5-3) AND
-       this template (R-L5-5). -->
+  <!-- L5 Info.plist template — `forge.config.ts` merges this into the
+       packaged app's final Info.plist via `packagerConfig.extendInfo`.
+
+       CFBundleURLTypes registers the `electron-l5://` deep-link scheme so
+       macOS routes invocations to the packaged binary (BT-L5-3).
+
+       CFBundleShortVersionString and NSHumanReadableCopyright are required
+       by the App Store and by macOS Gatekeeper's UX in the "About" panel.
+
+       LSUIElement is INTENTIONALLY OMITTED at L5 — the menu-bar-only
+       treatment is finalized in the capstone (Pulse). With LSUIElement
+       unset, the packaged L5 app still shows a dock icon, which matches
+       the L4-shell expectation when the bundle is launched standalone for
+       BT-L5-10. The capstone POC flips it to true. -->
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>L5 Packaging Signing Update</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>electron-l5</string>
+      </array>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+    </dict>
+  </array>
+
+  <key>CFBundleShortVersionString</key>
+  <string>1.0.0</string>
+
+  <key>NSHumanReadableCopyright</key>
+  <string>Copyright (c) 2026 Agent University — L5 POC. All rights reserved.</string>
 </dict>
 </plist>

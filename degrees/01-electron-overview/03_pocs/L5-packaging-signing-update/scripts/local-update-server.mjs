@@ -44,7 +44,9 @@ const server = http.createServer((req, res) => {
     res.end()
     return
   }
-  if (req.url.endsWith('/latest-mac.yml')) {
+  // electron-updater adds a `?noCache=...` token to bust caches.
+  const pathOnly = req.url.split('?')[0] ?? req.url
+  if (pathOnly.endsWith('/latest-mac.yml')) {
     const body = readFileSync(MANIFEST_FILE, 'utf8')
     res.statusCode = 200
     res.setHeader('Content-Type', 'application/x-yaml')
@@ -52,7 +54,7 @@ const server = http.createServer((req, res) => {
     res.end(body)
     return
   }
-  if (req.url.endsWith('.zip')) {
+  if (pathOnly.endsWith('.zip')) {
     res.statusCode = 200
     res.setHeader('Content-Type', 'application/zip')
     res.end(Buffer.from('PK' + ' '.repeat(18)))

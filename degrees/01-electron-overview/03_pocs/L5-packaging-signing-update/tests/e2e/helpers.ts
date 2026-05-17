@@ -280,8 +280,11 @@ export function startUpdateServer(opts: StartUpdateServerOptions): Promise<Updat
         res.end()
         return
       }
+      // electron-updater appends `?noCache=<token>` to bust caches; strip
+      // the query string before matching paths.
+      const pathOnly = req.url.split('?')[0] ?? req.url
       // The updater always asks for `/updates/latest-mac.yml`.
-      if (req.url.endsWith('/latest-mac.yml')) {
+      if (pathOnly.endsWith('/latest-mac.yml')) {
         try {
           const body = readFileSync(manifestPath, 'utf8')
           res.statusCode = 200
@@ -299,8 +302,8 @@ export function startUpdateServer(opts: StartUpdateServerOptions): Promise<Updat
       // download (autoDownload:false), so this branch should never be hit in
       // the happy path — but we return success rather than an error to keep
       // accidental triggers from blowing up the test log.
-      if (req.url.endsWith('.zip')) {
-        const fakePath = req.url.split('/').pop() ?? 'fake.zip'
+      if (pathOnly.endsWith('.zip')) {
+        const fakePath = pathOnly.split('/').pop() ?? 'fake.zip'
         const fakeArtifactPath = path.join(FIXTURES_DIR, fakePath)
         if (existsSync(fakeArtifactPath)) {
           const stat = statSync(fakeArtifactPath)

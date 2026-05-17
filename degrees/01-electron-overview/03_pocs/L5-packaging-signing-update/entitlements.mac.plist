@@ -2,9 +2,36 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <!-- RED skeleton. GREEN populates the hardened-runtime entries required for
-       notarization: com.apple.security.cs.allow-jit,
-       com.apple.security.cs.disable-library-validation, and
-       com.apple.security.network.client. -->
+  <!-- Hardened-runtime entitlements required for notarization on macOS.
+       Reference: research/17-code-signing-notarization.md.
+
+       allow-jit: V8 JIT execution. REQUIRED.
+       allow-unsigned-executable-memory: declared explicitly (false) so the
+         packaged app remains amenable to spctl --assess. Some Electron
+         versions historically needed this true; on 42.x it should be false.
+       disable-library-validation: Electron loads its own framework dylibs.
+         REQUIRED.
+       allow-dyld-environment-variables: declared false (default) so the
+         attacker surface stays minimal.
+       app-sandbox: false (we ship outside the MAS).
+       network.client: REQUIRED for electron-updater and crashReporter upload.
+  -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+  <false/>
+
+  <key>com.apple.security.cs.disable-library-validation</key>
+  <true/>
+
+  <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+  <false/>
+
+  <key>com.apple.security.app-sandbox</key>
+  <false/>
+
+  <key>com.apple.security.network.client</key>
+  <true/>
 </dict>
 </plist>
