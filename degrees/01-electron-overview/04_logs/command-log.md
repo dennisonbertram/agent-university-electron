@@ -245,3 +245,97 @@ Running 13 tests using 1 worker
   ✓ R-L2-1..4 (4 tests)
   13 passed (7.1s)
 ```
+
+## 15 — 2026-05-17 — L3 install dependencies
+
+```
+cd degrees/01-electron-overview/03_pocs/L3-storage-and-native-io && npm install
+```
+
+Output (excerpt):
+
+```
+added 77 packages, and audited 78 packages in 4s
+```
+
+## 16 — 2026-05-17 — L3 unit test run (RED commit)
+
+```
+cd degrees/01-electron-overview/03_pocs/L3-storage-and-native-io && npm run test
+```
+
+Output (excerpt):
+
+```
+ Test Files  1 failed | 4 passed (5)
+      Tests  7 failed | 43 passed (50)
+```
+
+Failures: 7 in `tests/unit/storage.test.ts` — all
+`Error: storage.createJournalStorage: not implemented (RED commit stub)`.
+
+## 17 — 2026-05-17 — L3 e2e run (RED commit)
+
+```
+cd degrees/01-electron-overview/03_pocs/L3-storage-and-native-io && npm run test:e2e
+```
+
+Output (excerpt):
+
+```
+  6 failed
+    tests/e2e/journal.spec.ts:24:5 › BT-L3-1
+    tests/e2e/journal.spec.ts:67:5 › BT-L3-2
+    tests/e2e/lifecycle-flush.spec.ts:35:5 › BT-L3-8
+    tests/e2e/menus.spec.ts:48:5 › BT-L3-6
+    tests/e2e/menus.spec.ts:76:5 › BT-L3-9
+    tests/e2e/watch.spec.ts:32:5 › BT-L3-7
+  3 passed (46.8s)
+```
+
+## 18 — 2026-05-17 — L3 unit test run (GREEN commit)
+
+```
+cd degrees/01-electron-overview/03_pocs/L3-storage-and-native-io && npm run test
+```
+
+Output:
+
+```
+ Test Files  5 passed (5)
+      Tests  50 passed (50)
+```
+
+## 19 — 2026-05-17 — L3 e2e run (GREEN commit)
+
+```
+cd degrees/01-electron-overview/03_pocs/L3-storage-and-native-io && npm run test:e2e
+```
+
+Output:
+
+```
+Running 9 tests using 1 worker
+  ✓ BT-L3-1..9 (9 tests)
+  9 passed (4.0s)
+```
+
+## 20 — 2026-05-17 — L3 full suite (REGRESSION commit)
+
+```
+cd degrees/01-electron-overview/03_pocs/L3-storage-and-native-io && npm run test && npm run test:e2e
+```
+
+Output:
+
+```
+# vitest
+Test Files  5 passed (5)
+     Tests  50 passed (50)
+
+# playwright
+Running 13 tests using 1 worker
+  ✓ BT-L3-1..9 (9 tests)
+  ✓ R-L3-1..4 (4 tests)
+  13 passed (6.9s)
+```

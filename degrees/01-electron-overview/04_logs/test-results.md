@@ -266,3 +266,127 @@ Running 13 tests using 1 worker
   all pass on first run alongside the 9 behavioral tests.
 - **Linked to test-plan**: BT-L2-1..8 and R-L2-1..4 in
   `03_pocs/L2-secure-ipc/test-plan.md`.
+
+## Entry 7 — L3 — RED (vitest + playwright)
+
+- **Date**: 2026-05-17
+- **POC**: L3-storage-and-native-io
+- **Command**:
+  - `npm run test` (vitest)
+  - `npm run test:e2e` (playwright)
+- **Status**: FAIL (expected — RED commit `22e1c5a`)
+- **Output** (verbatim, excerpts):
+
+vitest:
+
+```
+ RUN  v4.1.6
+ ✓ tests/unit/csp.test.ts (6 tests)
+ ✓ tests/unit/security-defaults.test.ts (6 tests)
+ ✓ tests/unit/ipc-validation.test.ts (27 tests)
+ ✓ tests/unit/ipc-registry-coverage.test.ts (4 tests)
+ × tests/unit/storage.test.ts (7 tests) — all fail with:
+   Error: storage.createJournalStorage: not implemented (RED commit stub)
+ Test Files  1 failed | 4 passed (5)
+      Tests  7 failed | 43 passed (50)
+```
+
+playwright:
+
+```
+Running 9 tests using 1 worker
+
+  ✓ BT-L3-3 dialog cancel (381ms)
+  ✓ BT-L3-4 dialog save (515ms)
+  ✓ BT-L3-5 drag-drop IPC (382ms)
+  × BT-L3-1 journal append+list — storage.createJournalStorage: not implemented
+  × BT-L3-2 journal corruption recovery — storage.createJournalStorage: not implemented
+  × BT-L3-6 application menu shape — menu.getApplicationMenuTree: not implemented
+  × BT-L3-7 file watcher rename — no rename event observed
+  × BT-L3-8 Quit menu flush — storage.createJournalStorage: not implemented
+  × BT-L3-9 context menu listener — listenerCount: 0
+
+  6 failed
+  3 passed (46.8s)
+```
+
+- **Notes**: BT-L3-3/4/5 already pass at RED because the dialog adapter
+  + files:dropped logger ride on L2 IPC plumbing that needs no new
+  implementation. The storage / watch / menu stubs throw `not
+  implemented`, producing the 6 failures.
+- **Linked to test-plan**: BT-L3-1..9 in `03_pocs/L3-storage-and-native-io/test-plan.md`.
+
+## Entry 8 — L3 — GREEN (vitest + playwright)
+
+- **Date**: 2026-05-17
+- **POC**: L3-storage-and-native-io
+- **Command**:
+  - `npm run test` (vitest)
+  - `npm run test:e2e` (playwright)
+- **Status**: PASS (GREEN commit `0568be0`)
+- **Output** (verbatim, excerpts):
+
+vitest:
+
+```
+ RUN  v4.1.6
+ ✓ tests/unit/csp.test.ts (6 tests) 2ms
+ ✓ tests/unit/security-defaults.test.ts (6 tests) 2ms
+ ✓ tests/unit/ipc-validation.test.ts (27 tests) 3ms
+ ✓ tests/unit/ipc-registry-coverage.test.ts (4 tests) 2ms
+ ✓ tests/unit/storage.test.ts (7 tests) 10ms
+
+ Test Files  5 passed (5)
+      Tests  50 passed (50)
+```
+
+playwright:
+
+```
+Running 9 tests using 1 worker
+
+  ✓  1 BT-L3-3 (381ms)
+  ✓  2 BT-L3-4 (515ms)
+  ✓  3 BT-L3-5 (382ms)
+  ✓  4 BT-L3-1 (351ms)
+  ✓  5 BT-L3-2 (372ms)
+  ✓  6 BT-L3-8 (337ms)
+  ✓  7 BT-L3-6 (354ms)
+  ✓  8 BT-L3-9 (349ms)
+  ✓  9 BT-L3-7 (739ms)
+
+  9 passed (4.0s)
+```
+
+- **Notes**: Every BT passed on the first GREEN build. BT-L3-7 latency
+  738ms — slower than the spec's 500ms target but well under the
+  test's 1500ms CI gate. Documented as an expectation gap (not promoted)
+  in poc-report.md.
+- **Linked to test-plan**: BT-L3-1..9 in `03_pocs/L3-storage-and-native-io/test-plan.md`.
+
+## Entry 9 — L3 — REGRESSION (vitest + playwright)
+
+- **Date**: 2026-05-17
+- **POC**: L3-storage-and-native-io
+- **Command**: `npm run test && npm run test:e2e`
+- **Status**: PASS
+
+vitest:
+
+```
+ Test Files  5 passed (5)
+      Tests  50 passed (50)
+```
+
+playwright:
+
+```
+Running 13 tests using 1 worker
+  ✓  BT-L3-1..9 (9 tests)
+  ✓  R-L3-1..4 (4 tests)
+  13 passed (6.9s)
+```
+
+- **Notes**: R-L3-1..4 added in this commit; all four pass on the first
+  run alongside the nine behavioral tests.
+- **Linked to test-plan**: R-L3-1..4 in `03_pocs/L3-storage-and-native-io/test-plan.md`.
