@@ -339,3 +339,46 @@ Running 13 tests using 1 worker
   ✓ R-L3-1..4 (4 tests)
   13 passed (6.9s)
 ```
+
+## L4-1 — 2026-05-17 — L4 RED build + tests
+
+```
+cd .../03_pocs/L4-deep-macos-integration
+npm install
+npm run build
+npm run test
+npx playwright test
+```
+
+Output (excerpts):
+
+vitest (RED):
+```
+ Test Files  2 failed | 8 passed (10)
+      Tests  7 failed | 91 passed (98)
+```
+
+The 7 failures live in `parse-deep-link.test.ts` (4 happy-path assertions
+against the RED stub `[null, Error('not implemented')]`) and
+`notification-failed-listener.test.ts` (3 static-source checks that look for
+`new Notification(...)`, `.on('failed'`, and `.show(` — none of which appear
+in the RED stub).
+
+playwright (RED):
+```
+  12 failed
+    tests/e2e/autolaunch.spec.ts BT-L4-8
+    tests/e2e/dock.spec.ts BT-L4-10
+    tests/e2e/dock.spec.ts BT-L4-11
+    tests/e2e/lifecycle.spec.ts BT-L4-6
+    tests/e2e/lifecycle.spec.ts BT-L4-7
+    tests/e2e/lifecycle.spec.ts BT-L4-12
+    tests/e2e/notifications.spec.ts BT-L4-3
+    tests/e2e/power.spec.ts BT-L4-5
+    tests/e2e/shortcuts.spec.ts BT-L4-4
+    tests/e2e/theme.spec.ts BT-L4-9
+    tests/e2e/tray.spec.ts BT-L4-1
+    tests/e2e/tray.spec.ts BT-L4-2
+```
+
+All 12 BTs fail on real behavioral assertions, not import errors.

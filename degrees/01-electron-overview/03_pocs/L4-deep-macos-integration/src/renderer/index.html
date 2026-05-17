@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!--
+      Strict CSP carried forward from L2/L3 unchanged. R-L4 regression
+      coverage asserts this remains at or stricter than the L2 baseline.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>L4 — Deep macOS System Integration</title>
+  </head>
+  <body>
+    <main id="root">
+      <h1>L4 — Deep macOS System Integration</h1>
+      <p id="status">Booting…</p>
+      <div id="drop-zone" style="border:1px dashed #888;padding:1em;margin-top:1em;">
+        Drop files here
+      </div>
+    </main>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

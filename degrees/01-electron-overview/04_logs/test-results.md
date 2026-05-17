@@ -390,3 +390,35 @@ Running 13 tests using 1 worker
 - **Notes**: R-L3-1..4 added in this commit; all four pass on the first
   run alongside the nine behavioral tests.
 - **Linked to test-plan**: R-L3-1..4 in `03_pocs/L3-storage-and-native-io/test-plan.md`.
+
+## L4 RED — 2026-05-17
+
+- **POC**: L4 Deep macOS System Integration
+- **Suite**: vitest + Playwright (`_electron`)
+- **Commit phase**: RED — `phase-6(L4): red — failing tests for tray state, notifications, shortcuts, powerMonitor, lifecycle, deep links, autolaunch, theme, dock`
+
+vitest:
+```
+Test Files  2 failed | 8 passed (10)
+     Tests  7 failed | 91 passed (98)
+```
+
+playwright (e2e):
+```
+12 failed
+  BT-L4-1, BT-L4-2 (tray)
+  BT-L4-3           (notifications)
+  BT-L4-4           (shortcuts)
+  BT-L4-5           (power)
+  BT-L4-6, BT-L4-7, BT-L4-12 (lifecycle)
+  BT-L4-8           (autolaunch)
+  BT-L4-9           (theme)
+  BT-L4-10, BT-L4-11 (dock)
+```
+
+- **Notes**: All 12 behavioral failures + 7 unit-test failures are real
+  assertion failures, not import errors. The 7 unit-test failures arise
+  from `parse-deep-link.test.ts` happy-path probes and the
+  `notification-failed-listener.test.ts` static-source checks (the RED
+  notification stub does not yet construct a `new Notification`).
+- **Linked to test-plan**: `03_pocs/L4-deep-macos-integration/test-plan.md` (written at REGRESSION).
