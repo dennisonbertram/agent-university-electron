@@ -1,43 +1,102 @@
 /**
  * App lifecycle wiring for L4.
  *
- * Responsibilities:
- *   - `requestSingleInstanceLock()` BEFORE `whenReady()` (R-L4-5). The actual
- *     call is in `main.ts` at module-top so the static-source ordering check
- *     passes.
- *   - `second-instance` handler: focus the existing window, parse any deep
- *     link arg, dispatch to the shared deep-link handler, log
- *     `lifecycle:second-instance`.
- *   - `open-url` handler (macOS): parse + dispatch + log `lifecycle:open-url`.
- *   - `activate` handler (macOS): re-create a window when none exist.
- *   - `before-quit` carry-forward from L3 (storage flush) — handled in main.ts.
- *   - `will-quit`: tear down globalShortcut registrations + cleanup
- *     autolaunch (R-L4-6) + log `lifecycle:will-quit:cleanup`.
+ * `dispatchArgs(args, origin)` is the single entry point used by both:
+ *   - macOS `open-url` event (origin === 'open-url') — args = [url]
+ *   - Windows/Linux `second-instance` event (origin === 'second-instance') —
+ *     args = the full argv of the second process
  *
- * RED commit: installLifecycle returns immediately without wiring anything,
- * so BT-L4-6/7/12 fail.
+ * On each call:
+ *   1. Find the first arg that starts with `electron-l4://`.
+ *   2. Parse it via `parseDeepLink`.
+ *   3. Log either `lifecycle:open-url` or `lifecycle:second-instance` with
+ *      the parsed payload OR a `no-link` payload if no URL was present.
+ *   4. Focus the existing main window (BT-L4-6 expectation).
+ *   5. Invoke `onDeepLink` so main.ts can push the parsed link to the renderer.
+ *
+ * R-L4-2 cleanup is owned by `shortcuts.ts`; we additionally invoke
+ * `onWillQuit` here so main can layer in its own teardown.
  */
-import type { BrowserWindow } from 'electron'
+import { app, type BrowserWindow } from 'electron'
 import type { Logger } from './log'
-import type { ParsedDeepLink } from './protocol'
+import { parseDeepLink, type ParsedDeepLink, DEEP_LINK_SCHEME } from './protocol'
 
 export interface InstallLifecycleOptions {
   readonly logger: Logger
   readonly getMainWindow: () => BrowserWindow | null
   readonly onDeepLink: (link: ParsedDeepLink, origin: 'second-instance' | 'open-url') => void
-  /** Hook for shortcut cleanup. */
   readonly onWillQuit: () => void
 }
 
 export interface LifecycleController {
-  /** Dispatch a deep-link arg list (e.g. from `second-instance`). */
   dispatchArgs(args: readonly string[], origin: 'second-instance' | 'open-url'): void
 }
 
-export function installLifecycle(_opts: InstallLifecycleOptions): LifecycleController {
+export function installLifecycle(opts: InstallLifecycleOptions): LifecycleController {
+  const { logger, getMainWindow, onDeepLink, onWillQuit } = opts
+
+  app.on('will-quit', () => {
+    try {
+      onWillQuit()
+    } catch (err) {
+      logger.error('lifecycle:will-quit:hook-failed', {
+        message: err instanceof Error ? err.message : String(err),
+      })
+    }
+  })
+
+  const focusMain = (): void => {
+    const win = getMainWindow()
+    if (!win) return
+    if (win.isMinimized()) win.restore()
+    try {
+      win.show()
+      win.focus()
+    } catch (err) {
+      logger.warn('lifecycle:focus-main:failed', {
+        message: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
   return {
-    dispatchArgs: (_args: readonly string[], _origin): void => {
-      // STUB — RED.
+    dispatchArgs(args: readonly string[], origin): void {
+      const logEvent = origin === 'open-url' ? 'lifecycle:open-url' : 'lifecycle:second-instance'
+
+      // Find the first argument that looks like our deep link.
+      const url = args.find((a) => typeof a === 'string' && a.startsWith(`${DEEP_LINK_SCHEME}://`))
+
+      if (!url) {
+        logger.info(logEvent, { args, deepLink: null })
+        focusMain()
+        return
+      }
+
+      const [parsed, err] = parseDeepLink(url)
+      if (err || !parsed) {
+        logger.warn(logEvent, {
+          args,
+          url,
+          error: err?.message ?? 'unknown',
+        })
+        focusMain()
+        return
+      }
+      logger.info(logEvent, {
+        args,
+        url,
+        scheme: parsed.scheme,
+        action: parsed.action,
+        params: parsed.params,
+      })
+      focusMain()
+      try {
+        onDeepLink(parsed, origin)
+      } catch (handlerErr) {
+        logger.error('lifecycle:deeplink:handler-failed', {
+          message: handlerErr instanceof Error ? handlerErr.message : String(handlerErr),
+        })
+      }
     },
   }
 }

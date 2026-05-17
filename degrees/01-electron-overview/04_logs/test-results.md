@@ -422,3 +422,39 @@ playwright (e2e):
   `notification-failed-listener.test.ts` static-source checks (the RED
   notification stub does not yet construct a `new Notification`).
 - **Linked to test-plan**: `03_pocs/L4-deep-macos-integration/test-plan.md` (written at REGRESSION).
+
+## L4 GREEN — 2026-05-17
+
+- **POC**: L4 Deep macOS System Integration
+- **Suite**: vitest + Playwright (`_electron`)
+- **Commit phase**: GREEN — `phase-6(L4): green — tray state machine, notification failed-listener, globalShortcut, powerMonitor, single-instance + open-url, autolaunch, nativeTheme, dock badge; all behavioral tests pass`
+
+vitest:
+```
+Test Files  10 passed (10)
+     Tests  98 passed (98)
+```
+
+playwright (e2e):
+```
+Running 12 tests using 1 worker
+  ✓  1 BT-L4-8  (autolaunch)
+  ✓  2 BT-L4-10 (dock badge)
+  ✓  3 BT-L4-11 (recent docs)
+  ✓  4 BT-L4-6  (second-instance + deep-link)
+  ✓  5 BT-L4-7  (open-url)
+  ✓  6 BT-L4-12 (will-quit cleanup)
+  ✓  7 BT-L4-3  (notification failed in unsigned dev)
+  ✓  8 BT-L4-5  (powerMonitor suspend/resume)
+  ✓  9 BT-L4-4  (CmdOrCtrl+Shift+P fires)
+  ✓ 10 BT-L4-9  (nativeTheme dark/light)
+  ✓ 11 BT-L4-1  (Tray exists + initial state)
+  ✓ 12 BT-L4-2  (tray:set-state reflects)
+  12 passed (4.5s)
+```
+
+- **Notes**: BT-L4-3 is asserted via the unsigned-dev-failure path (the
+  `notification:failed:unsigned` log + `failed: { error }` returned to the
+  caller). In a signed packaged build the same call would resolve `ok:true`;
+  the signed path is documented as a future case for L5.
+- **Linked to test-plan**: `03_pocs/L4-deep-macos-integration/test-plan.md` (written at REGRESSION).

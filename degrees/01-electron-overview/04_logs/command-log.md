@@ -382,3 +382,46 @@ playwright (RED):
 ```
 
 All 12 BTs fail on real behavioral assertions, not import errors.
+
+## L4-2 — 2026-05-17 — L4 GREEN build + tests
+
+```
+cd .../03_pocs/L4-deep-macos-integration
+npm run build
+npm run test
+npx playwright test
+```
+
+Output (excerpts):
+
+vitest (GREEN):
+```
+Test Files  10 passed (10)
+     Tests  98 passed (98)
+```
+
+playwright (GREEN):
+```
+12 passed (4.5s)
+```
+
+Implementations landed:
+- `src/protocol.ts`: full parser with strict scheme + action gate; rejects
+  `electron-l4://`, `electron-l4://%`, malformed URLs (R-L4-4 happy path).
+- `src/tray.ts`: module-scope `trayInstance` (FM-04), STATE_TITLE table for
+  idle/focused/break/paused.
+- `src/notifications.ts`: Notification + `failed` listener pair, 2s timeout
+  fallback so non-darwin platforms still resolve.
+- `src/shortcuts.ts`: globalShortcut.register + `app.on('will-quit', ...)`
+  cleanup with `globalShortcut.unregisterAll()`.
+- `src/power.ts`: suspend/resume + lock/unlock/on-ac/on-battery handlers;
+  `fireForTest` uses `powerMonitor.emit` for the e2e seam.
+- `src/lifecycle.ts`: single `dispatchArgs(args, origin)` handles both
+  `open-url` and `second-instance`; focuses main window, parses, logs,
+  dispatches to `onDeepLink`.
+- `src/autolaunch.ts`: setLoginItemSettings wrapper logging
+  `autolaunch:set:requested` and `:observed`; `ensureLoginItemDisabledOnCleanup`
+  sentinel for R-L4-6 static check.
+- `src/theme.ts`: nativeTheme wrapper with sync snapshot broadcast (so the
+  e2e push event lands before the renderer racer times out).
+- `src/dock.ts`: dock.setBadge + addRecentDocument with platform guards.
