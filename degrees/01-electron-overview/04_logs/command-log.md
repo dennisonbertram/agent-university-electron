@@ -425,3 +425,30 @@ Implementations landed:
 - `src/theme.ts`: nativeTheme wrapper with sync snapshot broadcast (so the
   e2e push event lands before the renderer racer times out).
 - `src/dock.ts`: dock.setBadge + addRecentDocument with platform guards.
+
+## L4-3 — 2026-05-17 — L4 REGRESSION run
+
+```
+cd .../03_pocs/L4-deep-macos-integration
+npx playwright test
+```
+
+Output (excerpt):
+```
+Running 18 tests using 1 worker
+  ✓ BT-L4-1..12 (12 tests, all behavioral)
+  ✓ R-L4-1..6  (6 tests, all regression)
+  18 passed (7.3s)
+```
+
+vitest carry-forward:
+```
+Test Files  10 passed (10)
+     Tests  98 passed (98)
+```
+
+Three changes landed in this commit beyond the test additions:
+- README.md, test-plan.md, poc-report.md written.
+- decision-log Decision 10 (test-only IPC channels) appended.
+- expectation-gap-ledger Entries 5 (login-item round-trip flake on
+  unsigned dev) and 6 (tray title-vs-PNG deviation) appended.

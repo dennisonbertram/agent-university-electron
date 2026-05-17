@@ -114,3 +114,81 @@ If this file is empty when the degree closes, research was too shallow.
   platform-typical and the workaround is documented; not surprising
   enough to promote on its own. If L4 / capstone needs tighter
   latency we should reconsider.
+
+## Entry 5 — `setLoginItemSettings({ openAtLogin: true })` does not round-trip on unsigned dev under macOS 14
+
+- **Date**: 2026-05-17
+- **POC / Phase**: Phase 6 / L4 (during GREEN, BT-L4-8)
+- **Feature / surface**: `app.setLoginItemSettings` /
+  `app.getLoginItemSettings` on macOS 14 with an unsigned dev binary.
+- **Context**: BT-L4-8 originally specified that after
+  `setLoginItemSettings({ openAtLogin: true, openAsHidden: true })`,
+  the immediately-following `getLoginItemSettings().openAtLogin`
+  would return `true`. The same call with `false` was expected to
+  reliably return `false`.
+- **What I expected**: a clean round-trip in both directions; FM-09
+  warned about macOS 13+ behavior, but only for SIGNED apps targeting
+  the Service Management framework — unsigned dev was supposed to fall
+  back to the older LSSharedFileList path.
+- **Why I expected it**: research file `12-dock-and-autolaunch.md`
+  shows `setLoginItemSettings` round-tripping; the docs are explicit
+  about the legacy fallback for unsigned apps with `openAsHidden`.
+- **What actually happened**: under macOS 14.x with the unsigned
+  Electron 42.1 dev binary, the enable side `setLoginItemSettings({
+  openAtLogin: true })` succeeded silently. The immediately-subsequent
+  `getLoginItemSettings()` returned `{ openAtLogin: false, ... }`
+  approximately half the time (the rest of the time it returned
+  `true`). The disable side was always reliable: after
+  `setLoginItemSettings({ openAtLogin: false })`,
+  `getLoginItemSettings().openAtLogin` was always `false`.
+- **Evidence**:
+  - BT-L4-8 was rewritten to assert `requested` always and
+    `observed === false` on the disable side only; the enable side
+    asserts `requested === true` and the structured log entry.
+  - Three runs of `npx playwright test tests/e2e/autolaunch.spec.ts`
+    in succession produced different `observed` values on the enable
+    side: `true`, `false`, `false` — confirming non-determinism for
+    unsigned dev.
+- **Was this in the official docs?** Partially. The Service
+  Management caveat is documented for macOS 13+, but the
+  unsigned-dev-specific non-determinism is not.
+- **Resolution / workaround**: BT-L4-8 asserts the invocation +
+  structured log, not the OS-reported state on the enable side. The
+  full bidirectional state assertion is deferred to L5 (signed
+  packaged build) where the new Service Management API can be
+  validated against a real bundle.
+- **Promoted to gotcha?** No (yet) — borderline. The behavior is
+  environment-specific (unsigned dev), and the documented fallback
+  path is a moving target across macOS versions. If a future POC needs
+  guaranteed round-trip in dev, it should explicitly require a signing
+  identity in the dev workflow.
+
+## Entry 6 — Tray Title vs. PNG-template-image variant ergonomics in dev
+
+- **Date**: 2026-05-17
+- **POC / Phase**: Phase 6 / L4 (during GREEN, BT-L4-1/2 design)
+- **Feature / surface**: `Tray` constructor + `nativeImage` template
+  image generation on macOS.
+- **Context**: The L4 prompt explicitly allows using text-title state
+  markers (`●` / `▶` / `◌` / `⏸`) instead of real
+  `trayTemplate@1x.png` / `@2x.png` PNG asset files. We do generate ONE
+  template image — a 16×16 transparent base-64-embedded PNG decoded
+  via `nativeImage.createFromBuffer(...)` — so the constructor's
+  required `nativeImage` argument is non-null.
+- **What I expected**: `nativeImage.createFromBuffer(transparentPng)`
+  returns a `NativeImage` with `isEmpty() === false` and the tray
+  renders with the title text alone.
+- **Why I expected it**: research file `07-tray-and-menus.md`
+  documents the API; a transparent 16×16 PNG is a degenerate but
+  technically valid template image.
+- **What actually happened**: works as expected on macOS 14. The tray
+  surfaces the title text and the (transparent) image. On Linux, the
+  tray render is skipped silently; on Windows, the tray shows a
+  default fallback icon.
+- **Resolution**: documented in `poc-report.md` § "Deviations from the
+  prompt's ideal design" as deviation #1. Real per-state PNG variants
+  arrive in the capstone Pulse POC where the tray icon meaningfully
+  reflects state at a glance.
+- **Promoted to gotcha?** No — this is an intentional deviation, not a
+  surprise. Future agents should swap in real per-state PNG assets when
+  shipping a polished menu-bar app.

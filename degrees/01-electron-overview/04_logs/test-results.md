@@ -458,3 +458,43 @@ Running 12 tests using 1 worker
   caller). In a signed packaged build the same call would resolve `ok:true`;
   the signed path is documented as a future case for L5.
 - **Linked to test-plan**: `03_pocs/L4-deep-macos-integration/test-plan.md` (written at REGRESSION).
+
+## L4 REGRESSION — 2026-05-17
+
+- **POC**: L4 Deep macOS System Integration
+- **Suite**: vitest + Playwright (`_electron`)
+- **Commit phase**: REGRESSION — `phase-6(L4): regression — GC-safe Tray, shortcut cleanup, notification failed-listener guard, deep-link boundary parsing, single-instance ordering, autolaunch cleanup; POC docs`
+
+vitest:
+```
+Test Files  10 passed (10)
+     Tests  98 passed (98)
+```
+
+playwright (e2e):
+```
+Running 18 tests using 1 worker
+  ✓  1 BT-L4-8  (autolaunch)
+  ✓  2 BT-L4-10 (dock badge)
+  ✓  3 BT-L4-11 (recent docs)
+  ✓  4 BT-L4-6  (second-instance + deep-link)
+  ✓  5 BT-L4-7  (open-url)
+  ✓  6 BT-L4-12 (will-quit cleanup)
+  ✓  7 BT-L4-3  (notification failed in unsigned dev)
+  ✓  8 BT-L4-5  (powerMonitor suspend/resume)
+  ✓  9 R-L4-1  (Tray module-scope + survival probe)
+  ✓ 10 R-L4-2  (globalShortcut cleanup pairing)
+  ✓ 11 R-L4-3  (notification failed-listener pairing + runtime probe)
+  ✓ 12 R-L4-4  (parseDeepLink boundary)
+  ✓ 13 R-L4-5  (requestSingleInstanceLock ordering)
+  ✓ 14 R-L4-6  (autolaunch cleanup declaration)
+  ✓ 15 BT-L4-4  (CmdOrCtrl+Shift+P fires)
+  ✓ 16 BT-L4-9  (nativeTheme dark/light)
+  ✓ 17 BT-L4-1  (Tray exists + initial state)
+  ✓ 18 BT-L4-2  (tray:set-state reflects)
+  18 passed (7.3s)
+```
+
+- **Notes**: R-L4-1..6 added in this commit; all six pass on the first
+  run alongside the twelve behavioral tests.
+- **Linked to test-plan**: R-L4-1..6 in `03_pocs/L4-deep-macos-integration/test-plan.md`.
