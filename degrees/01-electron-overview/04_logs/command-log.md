@@ -452,3 +452,37 @@ Three changes landed in this commit beyond the test additions:
 - decision-log Decision 10 (test-only IPC channels) appended.
 - expectation-gap-ledger Entries 5 (login-item round-trip flake on
   unsigned dev) and 6 (tray title-vs-PNG deviation) appended.
+
+## L5-1 — 2026-05-17 — L5 RED setup (scaffold + npm install + vitest RED)
+
+```
+mkdir -p .../L5-packaging-signing-update/{src,scripts/fixtures,tests/{unit,e2e}}
+cp -R .../L4/src/. .../L5/src/
+npm install --no-audit --no-fund (electron 42.1.0, @electron-forge/cli 7.11.1,
+  maker-dmg 7.11.1, maker-zip 7.11.1, plugin-fuses 7.11.1, @electron/fuses 1.8.0,
+  @electron/notarize 3.1.1, @electron/universal 3.0.0, electron-updater 6.8.3,
+  electron-log 5.2.0, plist 3.1.0, yaml 2.6.1, playwright 1.60.0, vitest 4.1.6,
+  typescript 5.6.3, esbuild 0.24.0, @types/node 22.10.0)
+npx tsc -p tsconfig.json (EXIT=0)
+npx vitest run
+```
+
+Output (excerpt):
+```
+ Test Files  4 failed | 11 passed (15)
+      Tests  13 failed | 113 passed (126)
+```
+
+Failures (intentional, RED):
+- entitlements.test.ts × 4 (empty `entitlements.mac.plist`)
+- forge-config.test.ts × 4 (skeleton `forge.config.ts` has empty makers/plugins)
+- info-plist-template.test.ts × 3 (empty `Info.plist.template`)
+- updater-config.test.ts × 2 (stub `src/updater.ts` throws "not implemented")
+
+The 113 passing tests are L4 carry-forwards (parse-deep-link, ipc-validation,
+ipc-registry-coverage with the new L5 channels added, single-instance-lock-
+order, tray-state-machine, storage, csp, security-defaults, notification-
+failed-listener, shortcut-cleanup) PLUS the L5 ordering tests that pass even
+in RED because `startCrashReporter` is imported + called in main.ts ABOVE
+the `app.whenReady()` site (the stub throws at runtime, the static order is
+intact for the regression check).

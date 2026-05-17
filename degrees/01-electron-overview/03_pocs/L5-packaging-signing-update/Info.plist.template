@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- RED skeleton.
+       GREEN adds: CFBundleURLTypes (electron-l5:// scheme),
+       CFBundleShortVersionString, NSHumanReadableCopyright. The packaged
+       Info.plist is produced by @electron/packager merging packagerConfig.
+       extendInfo with this template; the test reads the FINAL packaged plist
+       under out/<platform>-<arch>/<App>.app/Contents/Info.plist (BT-L5-3) AND
+       this template (R-L5-5). -->
+</dict>
+</plist>

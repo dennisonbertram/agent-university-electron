@@ -1,0 +1,48 @@
+{
+  "name": "l5-packaging-signing-update",
+  "version": "1.0.0",
+  "private": true,
+  "productName": "L5-packaging-signing-update",
+  "description": "POC L5 — Packaging via electron-forge (DMG + ZIP makers, FusesPlugin), simulated signing/notarization skip path, electron-updater wired against a generic-provider local fixture, and crashReporter pre-ready ordering.",
+  "main": "dist/main.js",
+  "scripts": {
+    "clean": "rm -rf dist out",
+    "build:main": "tsc -p tsconfig.json",
+    "build:preload": "node scripts/build-preload.mjs",
+    "build:renderer": "node scripts/copy-renderer.mjs",
+    "build": "npm run build:main && npm run build:preload && npm run build:renderer",
+    "prestart": "npm run build",
+    "start": "electron-forge start",
+    "prepackage": "npm run build",
+    "package": "electron-forge package",
+    "premake": "npm run build",
+    "make": "electron-forge make",
+    "make:universal": "electron-forge make --arch=universal",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "pretest:e2e": "npm run build"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "7.11.1",
+    "@electron-forge/maker-dmg": "7.11.1",
+    "@electron-forge/maker-zip": "7.11.1",
+    "@electron-forge/plugin-fuses": "7.11.1",
+    "@electron-forge/shared-types": "7.11.1",
+    "@electron/fuses": "1.8.0",
+    "@electron/notarize": "3.1.1",
+    "@electron/universal": "3.0.0",
+    "@playwright/test": "1.60.0",
+    "@types/node": "22.10.0",
+    "electron": "42.1.0",
+    "esbuild": "0.24.0",
+    "plist": "3.1.0",
+    "typescript": "5.6.3",
+    "vitest": "4.1.6",
+    "yaml": "2.6.1"
+  },
+  "dependencies": {
+    "electron-log": "5.2.0",
+    "electron-updater": "6.8.3"
+  }
+}
