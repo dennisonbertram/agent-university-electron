@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!--
+      Strict CSP per shared/conventions.md and 01_research/05-security-model.md.
+      No 'unsafe-inline', no 'unsafe-eval'. Only same-origin scripts/styles.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>L1 — Hello Electron</title>
+  </head>
+  <body>
+    <main id="root">
+      <h1>L1 — Hello Electron</h1>
+      <p id="status">Booting…</p>
+    </main>
+    <script src="./renderer.js"></script>
+  </body>
+</html>
