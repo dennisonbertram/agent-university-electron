@@ -645,3 +645,16 @@ npx electron-rebuild                              # for playwright (ABI 146)
 Captured RED logs are in `test-output/RED.*.log`; GREEN logs in
 `test-output/GREEN.unit.log` and `test-output/GREEN.e2e.log`.
 
+
+## 2026-05-17 — Capstone Pulse — REGRESSION commit
+
+```
+cd 03_pocs/L-capstone-pulse
+# Add tests/e2e/regression.spec.ts (R-C-1..8).
+# Write README, test-plan, poc-report.
+# Append to logs (especially expectation-gap Entry 12, decision-log Decision 12,
+# debugging-log session, test-results-log).
+
+npx playwright test          # ⇒ 22/22 passed (BT-C-1..12 + R-C-1..8)
+```
+

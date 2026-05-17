@@ -74,3 +74,43 @@ Test Files  15 passed (15)
 packaging:signing:skipped:no-credentials — see simulated-signing.md for the real-signing flow.
 ```
 
+
+## 2026-05-17 — Capstone Pulse — Commit 3 (REGRESSION)
+
+### Vitest (unit) — unchanged from GREEN
+
+```
+Test Files  15 passed (15)
+     Tests  87 passed (87)
+```
+
+### Playwright — full BT + regression sweep
+
+```
+Running 22 tests using 1 worker
+✓ BT-C-1   focus.spec.ts        — Cmd+Shift+P starts 25-min session
+✓ BT-C-2   focus.spec.ts        — sleep+resume pause+resume with pausedForMs
+✓ BT-C-3   focus.spec.ts        — +5min notification action handler
+✓ BT-C-4   focus.spec.ts        — timer expiry → break + completion notif
+✓ BT-C-5   journal.spec.ts      — pulse://log encrypted row + notif
+✓ BT-C-6   journal-unlock       — Touch ID unavailable ⇒ requiresFallback
+✓ BT-C-7   journal-unlock       — passphrase verify (correct + wrong)
+✓ BT-C-8   journal-unlock       — Touch ID stub ⇒ unlocked
+✓ BT-C-9   lifecycle-restore    — relaunch restores rows; idle
+✓ BT-C-10  menu-bar-only        — dock.hide + LSUIElement=true
+✓ BT-C-11  packaging.spec.ts    — packaged Info.plist registers pulse://
+✓ BT-C-11b packaging.spec.ts    — better-sqlite3 unpacked outside asar
+✓ BT-C-11c packaging.spec.ts    — entitlements declares hardened-runtime keys
+✓ BT-C-12  packaged-boot        — packaged app boots; canonical log sequence
+✓ R-C-1    regression.spec.ts   — safeStorage fallback observable
+✓ R-C-2    regression.spec.ts   — journal-store + main reference safeStorage.encryptString
+✓ R-C-3    regression.spec.ts   — idx_journal_created_at present
+✓ R-C-4    regression.spec.ts   — single-instance-lock pre-whenReady + runtime dispatch
+✓ R-C-5    regression.spec.ts   — crashReporter pre-whenReady
+✓ R-C-6    regression.spec.ts   — input length caps enforced
+✓ R-C-7    regression.spec.ts   — globalShortcut.unregisterAll in will-quit
+✓ R-C-8    regression.spec.ts   — AutoUnpackNativesPlugin in forge.config
+
+22 passed (~13-32s, varies by package memoization)
+```
+
