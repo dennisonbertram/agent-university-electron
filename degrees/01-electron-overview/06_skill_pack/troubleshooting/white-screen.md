@@ -163,4 +163,4 @@ win.webContents.openDevTools()
 - [../lessons/02-secure-renderer-defaults.md](../lessons/02-secure-renderer-defaults.md) — CSP, navigation guards, sandbox
 - [../quickstart.md](../quickstart.md) — step-by-step minimal app creation
 
-Evidence: `../../../05_distillation/playbooks/PB-01-blank-white-screen-troubleshooting-guide.md`
+Evidence: `../../../05_distillation/playbooks/PB-01-debugging-white-screen.md`

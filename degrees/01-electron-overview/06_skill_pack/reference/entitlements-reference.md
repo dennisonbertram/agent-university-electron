@@ -147,4 +147,4 @@ These go in `packagerConfig.extendInfo`, not in the entitlements plist:
 - [../troubleshooting/code-signing-failure.md](../troubleshooting/code-signing-failure.md) — signing troubleshooting
 - [../checklists/production-readiness-checklist.md](../checklists/production-readiness-checklist.md) — items 6–11
 
-Evidence: `../../../05_distillation/playbooks/PB-08-packaging-macos-signed-build-walkthrough.md`, `../../../05_distillation/playbooks/PB-09-code-signing-and-notarization.md`
+Evidence: `../../../05_distillation/playbooks/PB-08-packaging-macos-signed-build-walkthrough.md`, `../../../05_distillation/playbooks/PB-08-packaging-macos-signed-build-walkthrough.md`

@@ -216,4 +216,4 @@ tail -f ~/Library/Logs/<your-app>/main.log | grep updater
 - [../labs/lab-09-electron-updater-local-fixture.md](../labs/lab-09-electron-updater-local-fixture.md) — hands-on exercise
 - [../checklists/production-readiness-checklist.md](../checklists/production-readiness-checklist.md) — items 13–17
 
-Evidence: `../../../05_distillation/playbooks/PB-07-electron-updater-not-checking.md`, `../../../05_distillation/patterns/P-12-electron-updater-with-generic-provider.md`
+Evidence: `../../../05_distillation/playbooks/PB-09-wiring-electron-updater-with-local-fixture.md`, `../../../05_distillation/patterns/P-12-electron-updater-with-generic-provider.md`

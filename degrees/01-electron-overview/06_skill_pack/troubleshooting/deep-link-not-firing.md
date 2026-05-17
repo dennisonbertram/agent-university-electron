@@ -194,4 +194,4 @@ plutil -p <App>.app/Contents/Info.plist | grep -A8 CFBundleURLTypes
 - [../recipes/recipe-deep-link-handler.md](../recipes/recipe-deep-link-handler.md) — full parseDeepLink + registration pattern
 - [../labs/lab-07-deep-link-router.md](../labs/lab-07-deep-link-router.md) — hands-on exercise
 
-Evidence: `../../../05_distillation/playbooks/PB-04-deep-link-not-firing.md`, `../../../05_distillation/patterns/P-11-deep-link-router-via-protocol-and-second-instance.md`
+Evidence: `../../../05_distillation/playbooks/PB-03-debugging-deep-link-not-firing.md`, `../../../05_distillation/patterns/P-11-deep-link-router-via-protocol-and-second-instance.md`

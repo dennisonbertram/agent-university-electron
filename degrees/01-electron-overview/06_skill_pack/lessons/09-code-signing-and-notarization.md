@@ -131,7 +131,7 @@ codesign --display --entitlements - out/<App>-darwin-arm64/MyApp.app
 
 ## Skip Path (Dev / School — No Creds)
 
-When `HAS_APPLE_CREDS === false`, `osxSign`/`osxNotarize` are not added to the packager config. The app packages unsigned and notarized. Use a `packageAfterCopy` hook to write a `simulated-signing.md` marker so CI can confirm the skip path ran cleanly:
+When `HAS_APPLE_CREDS === false`, `osxSign`/`osxNotarize` are not added to the packager config. The app packages unsigned and unnotarized. Use a `packageAfterCopy` hook to write a `simulated-signing.md` marker so CI can confirm the skip path ran cleanly:
 
 ```typescript
 afterCopy: [async (buildPath) => {

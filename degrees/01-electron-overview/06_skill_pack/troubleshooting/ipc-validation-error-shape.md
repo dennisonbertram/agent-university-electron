@@ -188,4 +188,4 @@ This avoids the round-trip serialization problem entirely — errors become data
 - [../labs/lab-02-secure-ipc-roundtrip.md](../labs/lab-02-secure-ipc-roundtrip.md) — hands-on exercise
 - [../checklists/security-checklist.md](../checklists/security-checklist.md) — IPC section (items 11–15)
 
-Evidence: `../../../05_distillation/playbooks/PB-03-ipc-validation-error-shape.md`, `../../../05_distillation/patterns/P-02-ipc-registry-with-validators.md`
+Evidence: `../../../05_distillation/patterns/P-02-ipc-registry-with-validators.md`

@@ -344,7 +344,9 @@ Evidence: `06_skill_pack/index.md` (master file table); `06_skill_pack/README.md
 
 Warnings:
 - Code signing and notarization: documented in detail but not exercised against real
-  Apple infrastructure. Paths are tagged `@signed-only` throughout.
+  Apple infrastructure. Paths are documented as simulated throughout the signing flow
+  (the literal "@signed-only" tag is used in POC tests; the skill-pack documents these
+  as "Skip Path (Dev / No Creds)" sections).
 - Universal binary (BT-L5-4): config is verified correct; the multi-arch build was not
   run end-to-end.
 - Real Touch ID prompt: tested via env-flag stub only; real biometric interaction

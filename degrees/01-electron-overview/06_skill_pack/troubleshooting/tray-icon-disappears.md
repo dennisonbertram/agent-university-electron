@@ -176,4 +176,4 @@ test('R-tray-01: trayInstance declared at module scope', () => {
 - [../labs/lab-04-tray-with-state.md](../labs/lab-04-tray-with-state.md) — hands-on exercise
 - [../checklists/deep-macos-integration-checklist.md](../checklists/deep-macos-integration-checklist.md) — items 5–8
 
-Evidence: `../../../05_distillation/playbooks/PB-05-tray-icon-disappears.md`, `../../../05_distillation/patterns/P-05-module-scoped-tray-instance.md`
+Evidence: `../../../05_distillation/playbooks/PB-04-debugging-tray-icon-disappears.md`, `../../../05_distillation/patterns/P-05-module-scoped-tray-instance.md`

@@ -172,4 +172,4 @@ test('BT-notif-01: notification either shows or fails with log marker', async ()
 - [../labs/lab-05-notification-with-failed-listener.md](../labs/lab-05-notification-with-failed-listener.md) — hands-on exercise
 - [../checklists/deep-macos-integration-checklist.md](../checklists/deep-macos-integration-checklist.md) — items 9–12
 
-Evidence: `../../../05_distillation/playbooks/PB-06-notification-not-displaying.md`, `../../../05_distillation/patterns/P-09-notification-always-attach-failed-listener.md`
+Evidence: `../../../05_distillation/playbooks/PB-05-debugging-notification-not-displaying.md`, `../../../05_distillation/patterns/P-09-notification-always-attach-failed-listener.md`

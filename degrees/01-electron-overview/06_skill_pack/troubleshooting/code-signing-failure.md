@@ -229,4 +229,4 @@ codesign --display --verbose=4 <App>.app 2>&1 | grep -E "flags|runtime"
 - [../checklists/packaging-checklist.md](../checklists/packaging-checklist.md) — code signing section
 - [../reference/entitlements-reference.md](../reference/entitlements-reference.md) — entitlements reference
 
-Evidence: `../../../05_distillation/playbooks/PB-08-packaging-macos-signed-build-walkthrough.md`, `../../../05_distillation/playbooks/PB-09-code-signing-and-notarization.md`
+Evidence: `../../../05_distillation/playbooks/PB-08-packaging-macos-signed-build-walkthrough.md`, `../../../05_distillation/playbooks/PB-08-packaging-macos-signed-build-walkthrough.md`

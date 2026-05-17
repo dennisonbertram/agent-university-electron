@@ -182,4 +182,4 @@ npx electron -e "require('better-sqlite3')" 2>&1   # electron test
 - [../recipes/recipe-better-sqlite3-with-auto-unpack.md](../recipes/recipe-better-sqlite3-with-auto-unpack.md) — complete forge config + rebuild scripts
 - [../labs/lab-08-packaging-and-fuses.md](../labs/lab-08-packaging-and-fuses.md) — packaging verification exercise
 
-Evidence: `../../../05_distillation/playbooks/PB-02-native-module-load-failure.md`, `../../../05_distillation/patterns/P-15-auto-unpack-natives-for-better-sqlite3.md`
+Evidence: `../../../05_distillation/playbooks/PB-02-debugging-native-module-load-failure.md`, `../../../05_distillation/patterns/P-15-auto-unpack-natives-for-better-sqlite3.md`

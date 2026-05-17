@@ -11,7 +11,8 @@
 | Secondary platforms | Windows + Linux documented where free; not actively built for the capstone |
 | Deployment context | Local packaging via electron-forge; auto-update simulated against a local fixture; no production update server in scope |
 | Capstone goal | "Pulse" — no-dock macOS menu-bar focus & journal companion combining tray, notifications, global shortcuts, powerMonitor, deep links, SQLite + safeStorage, Touch ID gate, auto-launch, native theme tracking, packaged with electron-forge and wired for auto-update |
-| Status | In progress (Phase 0 just complete) |
+| Status | Complete — all 11 doctrine phases delivered; Evidence Quality Gate PASS-WITH-WARNINGS, CLEAR_TO_CLOSE on 2026-05-17 |
+| Final commit | (to be filled by close commit below) |
 
 ## Version Pins (to be confirmed in Phase 0 environment probe)
 
