@@ -125,3 +125,144 @@ Running 8 tests using 1 worker
 
 - **Notes**: 4 regression tests added in this commit, all pass on first run.
 - **Linked to test-plan**: BT-L1-1..4 and R-L1-1..4 in `test-plan.md`
+
+## Entry 4 — L2 — RED (vitest + playwright)
+
+- **Date**: 2026-05-17
+- **POC**: L2-secure-ipc
+- **Command**:
+  - `npm run test` (vitest)
+  - `npx playwright test`
+- **Status**: FAIL (expected — RED commit `69a1499`)
+- **Output** (verbatim, excerpts):
+
+vitest:
+
+```
+ RUN  v4.1.6
+ ✓ tests/unit/csp.test.ts (6 tests)
+ ✓ tests/unit/security-defaults.test.ts (6 tests)
+ ✓ tests/unit/ipc-registry-coverage.test.ts (3 tests)
+ ✘ tests/unit/ipc-validation.test.ts > validators.ping (no-arg)
+   AssertionError: expected [Function] to not throw an error but
+   'IpcValidationError: validator not implemented (RED skeleton)' was thrown
+ ✘ tests/unit/ipc-validation.test.ts > validators.echo
+   IpcValidationError: validator not implemented (RED skeleton)
+ ✘ tests/unit/ipc-validation.test.ts > validators.journalAppend (parses { text:string })
+   IpcValidationError: validator not implemented (RED skeleton)
+ ✘ tests/unit/ipc-validation.test.ts > validators.journalAppend ({ text:number } → "text" in msg)
+   AssertionError: expected '... not implemented ...' to contain 'text'
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  4 failed | 20 passed (24)
+```
+
+playwright:
+
+```
+Running 9 tests using 1 worker
+  ✓  BT-L2-2 (typeof require undefined) — passes on static config
+  ✓  BT-L2-6 (CSP blocks inline) — passes on static config
+  ✘  BT-L2-1 → 'No handler registered for app:ping'
+  ✘  BT-L2-3 → Timed out waiting for 'security:window-open:blocked'
+  ✘  BT-L2-4 → Timed out waiting for 'security:navigation:blocked'
+  ✘  BT-L2-5 → name expected 'IpcValidationError', received 'Error'
+  ✘  BT-L2-5b → 'No handler registered for journal:append'
+  ✘  BT-L2-7 → 'No handler registered for app:echo'
+  ✘  BT-L2-8 → expected onTick count >= 4, received 0
+  7 failed | 2 passed (37.5s)
+```
+
+- **Notes**: failures are on real assertions, not infrastructure errors.
+  BT-L2-2 and BT-L2-6 pass because the static configuration (preload
+  + index.html CSP meta) is correct from the skeleton; the behaviors
+  under test are properties of those static configs and can only fail
+  under a future regression.
+- **Linked to test-plan**: BT-L2-1..8 in `03_pocs/L2-secure-ipc/test-plan.md`.
+
+## Entry 5 — L2 — GREEN (vitest + playwright)
+
+- **Date**: 2026-05-17
+- **POC**: L2-secure-ipc
+- **Command**:
+  - `npm run test`
+  - `npx playwright test`
+- **Status**: PASS (GREEN commit `477565d`)
+- **Output** (verbatim):
+
+vitest:
+
+```
+ RUN  v4.1.6
+ ✓ tests/unit/security-defaults.test.ts (6 tests) 2ms
+ ✓ tests/unit/csp.test.ts (6 tests) 2ms
+ ✓ tests/unit/ipc-validation.test.ts (9 tests) 3ms
+ ✓ tests/unit/ipc-registry-coverage.test.ts (3 tests) 1ms
+
+ Test Files  4 passed (4)
+      Tests  24 passed (24)
+   Duration  89ms
+```
+
+playwright:
+
+```
+Running 9 tests using 1 worker
+
+  ✓   1 BT-L2-6 (1.5s)
+  ✓   2 BT-L2-2 (323ms)
+  ✓   3 BT-L2-3 (335ms)
+  ✓   4 BT-L2-4 (936ms)
+  ✓   5 BT-L2-1 (343ms)
+  ✓   6 BT-L2-5 (341ms)
+  ✓   7 BT-L2-5b (345ms)
+  ✓   8 BT-L2-7 (336ms)
+  ✓   9 BT-L2-8 (1.6s)
+
+  9 passed (6.3s)
+```
+
+- **Notes**: BT-L2-5 required the Decision 6 fix (preload throws
+  `{ name: 'IpcValidationError', message }` instead of an Error
+  instance) — Electron's contextBridge strips Error.name across the
+  isolated-world boundary. See expectation-gap-ledger Entry 3.
+- **Linked to test-plan**: BT-L2-1..8 in `03_pocs/L2-secure-ipc/test-plan.md`.
+
+## Entry 6 — L2 — REGRESSION (vitest + playwright full suite)
+
+- **Date**: 2026-05-17
+- **POC**: L2-secure-ipc
+- **Command**:
+  - `npm run test`
+  - `npx playwright test`
+- **Status**: PASS
+- **Output** (verbatim):
+
+vitest: 24/24 pass (unchanged from GREEN).
+
+playwright:
+
+```
+Running 13 tests using 1 worker
+
+  ✓   1 BT-L2-6 (1.4s)
+  ✓   2 BT-L2-2 (351ms)
+  ✓   3 BT-L2-3 (344ms)
+  ✓   4 BT-L2-4 (818ms)
+  ✓   5 R-L2-1 (351ms)
+  ✓   6 R-L2-2 (341ms)
+  ✓   7 R-L2-3 (338ms)
+  ✓   8 R-L2-4 (1ms)
+  ✓   9 BT-L2-1 (339ms)
+  ✓  10 BT-L2-5 (338ms)
+  ✓  11 BT-L2-5b (338ms)
+  ✓  12 BT-L2-7 (337ms)
+  ✓  13 BT-L2-8 (1.5s)
+
+  13 passed (7.1s)
+```
+
+- **Notes**: 4 regression tests added in this commit (R-L2-1..4),
+  all pass on first run alongside the 9 behavioral tests.
+- **Linked to test-plan**: BT-L2-1..8 and R-L2-1..4 in
+  `03_pocs/L2-secure-ipc/test-plan.md`.

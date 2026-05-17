@@ -56,3 +56,20 @@ If this file is empty when the degree closes, research was too shallow.
 - **Was this in the official docs?** No / partial. The TS docs say declaration files (`.d.ts`) are picked up automatically when referenced, but a `.d.ts` with only global augmentations (no module exports) and no `///<reference />` from another file is not automatically discovered just because it matches the include glob.
 - **Resolution / workaround**: list ambient `.d.ts` files in tsconfig `"files"`. For L1: `"files": ["src/renderer/renderer.d.ts"]`.
 - **Promoted to gotcha?** Yes — content for `05_distillation/gotchas/tsc-ambient-dts-not-auto-included.md`.
+
+## Entry 3 — Electron contextBridge drops Error.name across the IPC boundary
+
+- **Date**: 2026-05-17
+- **POC / Phase**: Phase 6 / L2 (during GREEN debug of BT-L2-5)
+- **Feature / surface**: `ipcMain.handle` error serialization + `contextBridge` cloning
+- **Context**: BT-L2-5 asserts that when the renderer calls `window.api.journalAppend({ text: 123 })`, the rejected promise carries `err.name === 'IpcValidationError'`. The main side threw an `IpcValidationError` instance whose class definition sets `name = 'IpcValidationError' as const`.
+- **What I expected**: throwing `new IpcValidationError(...)` in the main-side `ipcMain.handle` callback would surface to the renderer with `name = 'IpcValidationError'`, because (a) Electron documents structured-clone serialization across IPC, and (b) WHATWG structured-clone for Errors preserves the `name` field. As a fallback I expected that setting `.name` on a fresh Error inside the preload's catch handler would survive `contextBridge`'s isolated-world cloning, since `contextBridge` also documents structured-clone semantics.
+- **Why I expected it**: documented Electron IPC behavior ("Structured Clone Algorithm" on `webContents.send` / `ipcRenderer.invoke`); WHATWG HTML living standard structured-clone-of-Error preserves `name`; common Node intuition that Error subclasses round-trip via JSON / clone.
+- **What actually happened**: (a) The renderer's catch block saw `err.name === 'Error'` regardless of the main-side Error class. Electron's official docs (`tutorial/ipc.md` → "Error Handling Considerations") confirm that `ipcMain.handle` only forwards `message` — every Error reaches the renderer as a vanilla `Error` instance. (b) Setting `.name` on a fresh Error in the preload, both via plain assignment and via `Object.defineProperty`, did NOT survive contextBridge's cloning into the main world; the renderer still saw `name = 'Error'`.
+- **Evidence**:
+  - Playwright BT-L2-5 failure with `Expected: "IpcValidationError"` / `Received: "Error"` after the GREEN preload implementation that set `.name` on the rethrown Error.
+  - Electron docs queried via Context7 (`/electron/electron`): `ipcMain.handle` reference says "Errors thrown in the handler are serialized; only the `message` property is sent to renderer" and `tutorial/ipc.md` confirms.
+  - Confirming step: in the preload, replaced `throw replaced` (Error instance) with `throw { name: 'IpcValidationError', message: real }` (plain object). BT-L2-5 then passed on the first re-run.
+- **Was this in the official docs?** Partially. The `ipcMain.handle` ↔ renderer half is documented; the contextBridge-cloning-strips-Error-name half is NOT (it's implied by the structured-clone reference but not explicit).
+- **Resolution / workaround**: encode the original error name via a sentinel prefix (`IPC_VALIDATION_ERROR_PREFIX = '__IPCVE__:'`) on the main side; have the preload strip the sentinel and `throw` a plain object `{ name, message }`. Pattern + reasoning documented in `src/preload.ts` header and in `decision-log.md` Decision 6.
+- **Promoted to gotcha?** Yes — content for `05_distillation/gotchas/contextbridge-drops-error-name.md` is ready: title, repro steps, fix, regression test pointer (BT-L2-5).

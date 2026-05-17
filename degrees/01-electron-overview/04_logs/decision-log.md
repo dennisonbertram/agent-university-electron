@@ -74,3 +74,32 @@ Material decisions made during the degree. Append-only.
 - **Reason**: Adding a bundler at L1 is over-scope for the smoke test. The drift-detector test makes the inline a controlled, observable workaround rather than silent duplication.
 - **Tradeoffs accepted**: every new IPC channel must be added in two places. The drift-check test makes that visible immediately.
 - **Future-agent implication**: L2 should adopt a preload bundler if it introduces more than ~3 additional channels. Until then, the inline + drift-check pattern scales fine.
+
+## Decision 5 — esbuild for preload bundling at L2
+
+- **Date**: 2026-05-17
+- **Decision**: Introduce esbuild at L2 to bundle `src/preload.ts` into a single `dist/preload.js`, eliminating L1's inline-channel-strings workaround.
+- **Context**: L2 grew the IPC surface to four channels (`app:ping`, `app:echo`, `journal:append`, `tick`) plus the `IPC_VALIDATION_ERROR_PREFIX` sentinel shared between main and preload. The L1 pattern of duplicating each string in `src/preload.ts` and adding a unit drift-check would have meant duplicating ~5 constants and re-running the cross-check after every change — exactly the situation Decision 4's future-agent-implication anticipated.
+- **Options considered**:
+  1. Continue the L1 pattern (inline literals + drift-check unit test).
+  2. Bundle the preload with esbuild — single file output, `external: ['electron']` so Electron's sandbox-preload whitelist still resolves.
+  3. Migrate the whole POC to electron-vite or electron-forge.
+- **Chosen option**: 2.
+- **Reason**: esbuild is one dependency (no plugins, no config file) and produces a single CommonJS file that the sandbox preload runtime resolves cleanly. Option 3 was rejected because Forge is explicitly scoped to L5 (Decision 1). The preload-only bundling preserves the rest of L1's `tsc`-only main-process compile.
+- **Tradeoffs accepted**: `npm install` grows by ~12 transitive packages (esbuild binary + types). Two compile steps now (tsc for main + esbuild for preload) — both run in series in `npm run build`.
+- **Future-agent implication**: this is the canonical preload-bundling pattern for the degree. L3+ should add their preload imports to `src/preload.ts` directly; do NOT reintroduce the inline-strings pattern. If renderer-side TS gets complex, L3+ may also bundle the renderer; until then `tsc + copy` is fine.
+
+## Decision 6 — Plain-object throw for typed IPC errors
+
+- **Date**: 2026-05-17
+- **Decision**: When a validation error must surface to the renderer with `name === 'IpcValidationError'`, encode the error name in the message via the `__IPCVE__:` sentinel in main and have the preload throw a plain object `{ name: 'IpcValidationError', message }` (NOT an Error instance).
+- **Context**: BT-L2-5 asserts `err.name === 'IpcValidationError'` in the renderer's `catch` block. Electron's `ipcMain.handle` serialization drops every Error field except `message` (documented in `01_research/04-ipc-patterns.md` and reconfirmed via Electron docs in this build). Setting `.name` on a fresh Error in the preload also did not survive `contextBridge`'s isolated-world cloning.
+- **Options considered**:
+  1. Throw an `Error` subclass from preload (rejected — name lost across contextBridge).
+  2. Use `Object.defineProperty(err, 'name', { value: 'IpcValidationError', enumerable: true })` (rejected — same loss).
+  3. Throw a plain object `{ name: 'IpcValidationError', message }` from preload. Renderer reads `err.name`/`err.message` exactly like an Error.
+  4. Return a discriminated-union envelope `{ ok: false, error: { ... } }` from the API and require the renderer to check `result.ok` (rejected — diverges from the prompt's "rejected Promise" requirement).
+- **Chosen option**: 3.
+- **Reason**: simplest pattern that satisfies the behavioral test, with no runtime cost and a clear comment in `src/preload.ts` documenting the why. The renderer-visible API is unchanged for the happy path.
+- **Tradeoffs accepted**: thrown value is not `instanceof Error` in the renderer. The renderer must use duck-typing (`err.name === 'IpcValidationError'`). Documented in README "Invariants" §5.
+- **Future-agent implication**: any L3+ code that wants more error types should reuse this pattern (add new sentinels and corresponding preload unwrap branches) or migrate to a discriminated-union envelope. Do not assume `instanceof` works across the IPC boundary.
