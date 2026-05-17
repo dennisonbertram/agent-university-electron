@@ -1,0 +1,61 @@
+# Coordinator machine state (never commit)
+.coord/
+
+# Node / Electron
+node_modules/
+package-lock.json.backup
+
+# Build artifacts
+dist/
+out/
+build/
+release/
+*.dmg
+*.zip
+*.app
+*.exe
+*.AppImage
+*.snap
+*.deb
+*.rpm
+
+# Electron-forge / electron-builder
+.webpack/
+.vite/
+forge.config.local.*
+
+# Native module rebuilds
+prebuilds/
+
+# Local databases (POCs create these)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Test artifacts
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# OS / editor
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# Signing / notarization secrets (NEVER commit)
+*.p12
+*.mobileprovision
+notarize-credentials.json
