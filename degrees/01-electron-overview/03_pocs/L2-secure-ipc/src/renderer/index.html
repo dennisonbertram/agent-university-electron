@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!--
+      Strict CSP per shared/conventions.md and 01_research/05-security-model.md.
+      No 'unsafe-inline', no 'unsafe-eval' in script-src.
+      style-src admits 'unsafe-inline' as a pragmatic concession for renderer
+      styling without a CSS bundler (documented in README).
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>L2 — Secure IPC</title>
+  </head>
+  <body>
+    <main id="root">
+      <h1>L2 — Secure IPC</h1>
+      <p id="status">Booting…</p>
+    </main>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

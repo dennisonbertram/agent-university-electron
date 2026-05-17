@@ -1,0 +1,28 @@
+{
+  "name": "l2-secure-ipc",
+  "version": "0.1.0",
+  "private": true,
+  "description": "POC L2 — Secure IPC: contextBridge + contextIsolation + sandbox + CSP + navigation guards + typed IPC with validation.",
+  "main": "dist/main.js",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build:main": "tsc -p tsconfig.json",
+    "build:preload": "node scripts/build-preload.mjs",
+    "build:renderer": "node scripts/copy-renderer.mjs",
+    "build": "npm run build:main && npm run build:preload && npm run build:renderer",
+    "prestart": "npm run build",
+    "start": "electron .",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "pretest:e2e": "npm run build"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0",
+    "@types/node": "22.10.0",
+    "electron": "42.1.0",
+    "esbuild": "0.24.0",
+    "typescript": "5.6.3",
+    "vitest": "4.1.6"
+  }
+}
