@@ -5,37 +5,57 @@
  * cannot `require()` arbitrary relative TS files at runtime. L1 inlined the
  * channel string literals as a workaround. L2 instead bundles this file with
  * esbuild into a single dist/preload.js, which lets us import the typed
- * `IPC_CHANNELS` and `PUSH_CHANNELS` from `./ipc` cleanly. The bundler
- * resolves them at build time; Electron's `external: ['electron']` flag
- * preserves the runtime `require('electron')` so contextBridge + ipcRenderer
- * still resolve through Electron's whitelist. Decision logged in
+ * `IPC_CHANNELS`, `PUSH_CHANNELS`, and `IPC_VALIDATION_ERROR_PREFIX` from
+ * `./ipc` cleanly. The bundler resolves them at build time;
+ * `external: ['electron']` in the esbuild config preserves the runtime
+ * `require('electron')` so contextBridge + ipcRenderer still resolve through
+ * Electron's sandbox whitelist. Decision logged in
  * 04_logs/decision-log.md Entry 5.
  *
- * SKELETON (RED commit): exposes a stub `window.api` whose methods reject
- * with "not implemented" — enough for the renderer to load and for the
- * unit tests to import this file, but the e2e tests fail on real
- * assertions (rejected promises, missing log entries).
+ * Typed-error pattern: errors thrown in `ipcMain.handle` lose their `name`
+ * across the IPC boundary (Electron only forwards `message`). For
+ * IpcValidationError, main encodes the error name in the message via the
+ * `__IPCVE__:` sentinel prefix; we strip that here and reconstruct a typed
+ * error whose `name === 'IpcValidationError'`. (BT-L2-5 asserts this.)
  */
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC_CHANNELS, PUSH_CHANNELS } from './ipc'
+import { IPC_CHANNELS, PUSH_CHANNELS, IPC_VALIDATION_ERROR_PREFIX } from './ipc'
 
 type TickListener = (n: number) => void
 
-// RED skeleton — methods are wired but the underlying handlers are stubs in
-// src/ipc.ts. The renderer will see "no handler registered" errors.
+/** Re-throw IPC errors with the original error name restored where the main
+ *  side encoded one via the validation-error sentinel. */
+async function rethrowingInvoke<T>(channel: string, arg?: unknown): Promise<T> {
+  try {
+    const result = await ipcRenderer.invoke(channel, arg)
+    return result as T
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    // Electron prefixes the message with `Error invoking remote method '<ch>':
+    // <type>: <msg>` so we use indexOf rather than startsWith.
+    const sentinelIdx = message.indexOf(IPC_VALIDATION_ERROR_PREFIX)
+    if (sentinelIdx >= 0) {
+      const real = message.slice(sentinelIdx + IPC_VALIDATION_ERROR_PREFIX.length)
+      // contextBridge serializes Error instances by extracting only `message`
+      // (the renderer always sees `.name === 'Error'` on a thrown Error), so
+      // we throw a plain object with explicit `name` + `message` fields.
+      // The renderer's caller does `catch (err)` and reads `err.name` —
+      // which is exactly what BT-L2-5 asserts.
+      throw { name: 'IpcValidationError', message: real }
+    }
+    throw err
+  }
+}
+
 const api = {
   ping(): Promise<{ pong: true; ts: number; monotonic: number }> {
-    return ipcRenderer.invoke(IPC_CHANNELS.PING) as Promise<{
-      pong: true
-      ts: number
-      monotonic: number
-    }>
+    return rethrowingInvoke(IPC_CHANNELS.PING)
   },
   echo<T>(value: T): Promise<T> {
-    return ipcRenderer.invoke(IPC_CHANNELS.ECHO, value) as Promise<T>
+    return rethrowingInvoke<T>(IPC_CHANNELS.ECHO, value)
   },
   journalAppend(input: unknown): Promise<{ ok: true }> {
-    return ipcRenderer.invoke(IPC_CHANNELS.JOURNAL_APPEND, input) as Promise<{ ok: true }>
+    return rethrowingInvoke<{ ok: true }>(IPC_CHANNELS.JOURNAL_APPEND, input)
   },
   onTick(cb: TickListener): () => void {
     // SECURITY: closure-wrap the listener so the renderer never sees the
