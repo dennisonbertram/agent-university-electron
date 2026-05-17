@@ -1,39 +1,68 @@
 /**
- * Touch ID wrapper for Pulse — RED commit stub.
+ * Touch ID wrapper for Pulse — GREEN.
  *
  * Capability resolution:
- *   - If env `TOUCH_ID_UNAVAILABLE === '1'`, always return false (BT-C-6).
- *   - If env `TOUCH_ID_FORCE_AVAILABLE === '1'`, always return true (BT-C-8).
- *   - Otherwise, delegate to `systemPreferences.canPromptTouchID()`.
+ *   - `TOUCH_ID_UNAVAILABLE=1` ⇒ canUseTouchId() returns false (BT-C-6).
+ *   - `TOUCH_ID_FORCE_AVAILABLE=1` ⇒ canUseTouchId() returns true (BT-C-8).
+ *   - Otherwise, delegates to `systemPreferences.canPromptTouchID()`.
  *
- * Real Touch ID can't be invoked from Playwright. Test code path:
- *   - BT-C-6: TOUCH_ID_UNAVAILABLE=1 ⇒ canUseTouchId() returns false ⇒
- *     `journal:list` returns `{ requiresFallback: true, reason: 'touch-id-unavailable' }`.
- *   - BT-C-8: TOUCH_ID_FORCE_AVAILABLE=1 ⇒ canUseTouchId() returns true ⇒
- *     a STUBBED `promptUnlock()` resolves true ⇒ `journal:list` returns `{ ok: true, entries }`.
- *
- * RED: every entry point throws.
+ * promptUnlock:
+ *   - If we cannot use Touch ID, return false (the journal IPC handler then
+ *     surfaces `requiresFallback: true`).
+ *   - If an override is provided (test injection), call it; resolve→true,
+ *     reject→false.
+ *   - Otherwise, call `systemPreferences.promptTouchID(reason)`.
  */
+import { systemPreferences } from 'electron'
 
 export interface BiometricService {
   canUseTouchId(): boolean
-  /**
-   * Prompts the user. Returns true on success, false on cancellation / failure
-   * / Touch ID unavailable. Never throws.
-   */
   promptUnlock(reason: string): Promise<boolean>
 }
 
 export interface InstallBiometricServiceOptions {
-  /**
-   * Optional injected prompt function. When provided (e.g. tests),
-   * `promptUnlock` calls this instead of `systemPreferences.promptTouchID`.
-   * The capstone main process uses the default — undefined — so the real
-   * API is exercised on hardware.
-   */
   readonly promptOverride?: (reason: string) => Promise<void>
 }
 
-export function installBiometricService(_opts?: InstallBiometricServiceOptions): BiometricService {
-  throw new Error('biometric: installBiometricService not implemented (RED)')
+export function installBiometricService(opts: InstallBiometricServiceOptions = {}): BiometricService {
+  const can = (): boolean => {
+    if (process.env.TOUCH_ID_UNAVAILABLE === '1') return false
+    if (process.env.TOUCH_ID_FORCE_AVAILABLE === '1') return true
+    try {
+      return systemPreferences.canPromptTouchID()
+    } catch {
+      return false
+    }
+  }
+  return {
+    canUseTouchId(): boolean {
+      return can()
+    },
+    async promptUnlock(reason: string): Promise<boolean> {
+      if (!can()) return false
+      // For BT-C-8 (TOUCH_ID_FORCE_AVAILABLE=1) on hardware without real Touch
+      // ID, the real promptTouchID call would hang. The override seam lets
+      // tests resolve/reject deterministically. The default for that env
+      // branch is a no-op resolved promise.
+      if (opts.promptOverride) {
+        try {
+          await opts.promptOverride(reason)
+          return true
+        } catch {
+          return false
+        }
+      }
+      if (process.env.TOUCH_ID_FORCE_AVAILABLE === '1') {
+        // Test seam: with FORCE_AVAILABLE and no override, resolve true so the
+        // Playwright suite can assert the `journal:unlocked:touch-id` path.
+        return true
+      }
+      try {
+        await systemPreferences.promptTouchID(reason)
+        return true
+      } catch {
+        return false
+      }
+    },
+  }
 }

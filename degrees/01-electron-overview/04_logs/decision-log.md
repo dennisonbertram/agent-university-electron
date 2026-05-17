@@ -263,3 +263,35 @@ Material decisions made during the degree. Append-only.
   same hybrid pattern unless a real reason to switch emerges (e.g.,
   multiple renderer entry points, HMR being needed for the journal popover).
 - **Reference**: 03_pocs/L5-packaging-signing-update/forge.config.ts.
+
+## Decision 12 — Capstone: in-process IPC test seam for SQLite inspection
+
+- **Date**: 2026-05-17
+- **Context**: BT-C-5 wants to assert that a `pulse://log?text=...` deep-link
+  produces a SQLite row with ciphertext (NOT plaintext). The natural test
+  shape is "open the journal.db from the Playwright process and read the
+  rows directly". But `better-sqlite3` is rebuilt for Electron's V8 ABI
+  (NODE_MODULE_VERSION 146) and cannot load under system Node 24 (ABI 137).
+  The Playwright process runs under system Node — the binary mismatch is
+  unavoidable as long as one binary serves both.
+- **Options considered**:
+  1. Maintain two prebuilds (system Node + Electron) and switch the symlink
+     based on the runner. Bespoke, brittle.
+  2. Inspect SQLite via an in-process IPC test seam — main returns the raw
+     rows (ciphertext base64-encoded) and the test asserts on them.
+  3. Drop the encryption assertion and trust the source-text regression
+     (R-C-2). Less powerful — a regression that bypassed encryption and
+     also stripped the `safeStorage.encryptString` reference would slip
+     through both static + behavioral checks.
+- **Chosen option**: 2. The `test:get-raw-journal-rows` channel returns
+  `{ id, ts, ciphertextBase64, length, created_at }` rows. The test
+  base64-decodes and asserts the bytes are not equal to the plaintext
+  (when encryption is available) OR are equal (when the fallback path
+  fires — R-C-1).
+- **Tradeoffs accepted**: One more test-only channel on the IPC surface,
+  gated by `testHooksEnabled()` so a real distribution doesn't expose it.
+- **Future-agent implication**: Whenever a test wants to inspect a native-
+  module-backed data store from outside the Electron process, prefer the
+  IPC seam over a direct module load. The ABI mismatch is a recurring
+  obstacle and the seam is much more durable.
+

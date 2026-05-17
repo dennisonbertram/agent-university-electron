@@ -139,6 +139,7 @@ export interface HandlerContext {
     list(): Promise<JournalListResult>
     unlockWithPassphrase(passphrase: string): Promise<JournalUnlockResult>
     setPassphrase(passphrase: string): { ok: true }
+    listRowsForTest(): ReadonlyArray<{ id: number; ts: string; ciphertext: Buffer; length: number; created_at: number }>
   }
   boot: {
     summary(): BootSummary
@@ -189,6 +190,7 @@ export const IPC_CHANNELS = {
   TEST_TRIGGER_NOTIFICATION_ACTION: 'test:trigger-notification-action',
   TEST_FIRE_DEEP_LINK: 'test:fire-deep-link',
   TEST_GET_BOOT_SUMMARY: 'test:get-boot-summary',
+  TEST_GET_RAW_JOURNAL_ROWS: 'test:get-raw-journal-rows',
 } as const
 
 export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS]
@@ -522,6 +524,22 @@ export const IPC_REGISTRY = {
       return s
     },
   },
+  TEST_GET_RAW_JOURNAL_ROWS: {
+    channel: IPC_CHANNELS.TEST_GET_RAW_JOURNAL_ROWS,
+    kind: 'invoke' as const,
+    validator: validators.testCheckForUpdates, // void validator — reused
+    handler: (_arg: void, _event: IpcMainInvokeEvent, ctx: HandlerContext): ReadonlyArray<{ id: number; ts: string; ciphertextBase64: string; length: number; created_at: number }> => {
+      const rows = ctx.journal.listRowsForTest()
+      ctx.logger.info('ipc:test:get-raw-journal-rows:served', { count: rows.length })
+      return rows.map((r) => ({
+        id: r.id,
+        ts: r.ts,
+        ciphertextBase64: r.ciphertext.toString('base64'),
+        length: r.length,
+        created_at: r.created_at,
+      }))
+    },
+  },
 } as const
 
 function validationFailedEvent(channel: string): string {
@@ -552,6 +570,7 @@ const TEST_ONLY_CHANNELS = new Set<string>([
   IPC_CHANNELS.TEST_TRIGGER_NOTIFICATION_ACTION,
   IPC_CHANNELS.TEST_FIRE_DEEP_LINK,
   IPC_CHANNELS.TEST_GET_BOOT_SUMMARY,
+  IPC_CHANNELS.TEST_GET_RAW_JOURNAL_ROWS,
 ])
 
 export function registerIpc(ipcMain: IpcMain, ctx: HandlerContext): void {

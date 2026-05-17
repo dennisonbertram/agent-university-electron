@@ -125,6 +125,9 @@ const api = {
   testGetBootSummary(): Promise<unknown> {
     return rethrowingInvoke(IPC_CHANNELS.TEST_GET_BOOT_SUMMARY)
   },
+  testGetRawJournalRows(): Promise<unknown> {
+    return rethrowingInvoke(IPC_CHANNELS.TEST_GET_RAW_JOURNAL_ROWS)
+  },
   // ---- push channels ----
   onShortcutFired(cb: StateListener<{ accelerator: string }>): () => void {
     const handler = (_event: Electron.IpcRendererEvent, payload: unknown): void => {

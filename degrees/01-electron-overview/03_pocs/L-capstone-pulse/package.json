@@ -11,18 +11,22 @@
     "build:preload": "node scripts/build-preload.mjs",
     "build:renderer": "node scripts/copy-renderer.mjs",
     "build": "npm run build:main && npm run build:preload && npm run build:renderer",
-    "prestart": "npm run build",
+    "patch:better-sqlite3": "node scripts/patches/better-sqlite3-v8-tag.mjs",
+    "postinstall": "npm run patch:better-sqlite3",
+    "rebuild:electron": "npm run patch:better-sqlite3 && electron-rebuild",
+    "rebuild:node": "npm rebuild better-sqlite3 --build-from-source",
+    "prestart": "npm run build && npm run rebuild:electron",
     "start": "electron-forge start",
-    "prepackage": "npm run build",
+    "prepackage": "npm run build && npm run rebuild:electron",
     "package": "electron-forge package",
-    "premake": "npm run build",
+    "premake": "npm run build && npm run rebuild:electron",
     "make": "electron-forge make",
     "make:universal": "electron-forge make --arch=universal",
-    "rebuild:better-sqlite3": "electron-rebuild -m better-sqlite3",
+    "pretest": "npm run rebuild:node",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
-    "pretest:e2e": "npm run build"
+    "pretest:e2e": "npm run build && npm run rebuild:electron"
   },
   "devDependencies": {
     "@electron-forge/cli": "7.11.1",
@@ -46,7 +50,7 @@
     "yaml": "2.6.1"
   },
   "dependencies": {
-    "better-sqlite3": "11.7.0",
+    "better-sqlite3": "^12.10.0",
     "electron-log": "5.2.0",
     "electron-updater": "6.8.3"
   }

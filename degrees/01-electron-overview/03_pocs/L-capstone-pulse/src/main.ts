@@ -484,6 +484,10 @@ function makeHandlerContext(): HandlerContext {
         journalLogger.info('journal:passphrase:set', {})
         return { ok: true as const }
       },
+      listRowsForTest: () => {
+        if (!state.journal) return []
+        return state.journal.listRowsForTest()
+      },
     },
     boot: {
       summary: (): BootSummary => ({

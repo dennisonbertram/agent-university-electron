@@ -614,3 +614,34 @@ npx playwright test tests/e2e/focus.spec.ts -g 'BT-C-1'
 
 Carried Entry 10 (Playwright wipes `test-results/` at start) — RED logs landed in `test-output/` instead.
 
+
+## 2026-05-17 — Capstone Pulse — GREEN commit
+
+```
+cd 03_pocs/L-capstone-pulse
+# Implement focus-engine, journal-store, biometric, passphrase modules.
+# Add IPC test seam test:get-raw-journal-rows (the test process can't load
+# the Electron-rebuilt better_sqlite3.node due to ABI 146 vs Node 24's 137).
+
+# better-sqlite3 12.10.0 source patches (per Entry 12 in expectation-gap-ledger):
+node scripts/patches/better-sqlite3-v8-tag.mjs
+  → External::New(isolate, addon, kExternalPointerTypeTagDefault)  V8 14+
+  → ::Value(kExternalPointerTypeTagDefault)                        V8 14+
+  → SetNativeDataProperty(..., nullptr, ...)                      V8 13/14
+  Each guarded by `#if V8_MAJOR_VERSION >= 14` so the SAME source compiles
+  cleanly under Node 24 (V8 13.6, vitest) AND Electron 42 (V8 14.8, e2e).
+
+# Rebuild for each target as needed:
+npm rebuild better-sqlite3 --build-from-source   # for vitest (Node ABI 137)
+npx electron-rebuild                              # for playwright (ABI 146)
+
+# vitest run                  ⇒ 87/87 passed (15 files)
+# playwright test             ⇒ 14/14 passed (focus 1-4, journal 5, unlock 6-8,
+#                                lifecycle 9, menu-bar 10, packaging 11, 11b, 11c,
+#                                packaged-boot 12)
+# npm run package             ⇒ Pulse.app + better-sqlite3 unpacked + simulated-signing.md
+```
+
+Captured RED logs are in `test-output/RED.*.log`; GREEN logs in
+`test-output/GREEN.unit.log` and `test-output/GREEN.e2e.log`.
+

@@ -307,3 +307,46 @@ If this file is empty when the degree closes, research was too shallow.
   the `forge.config.ts` doc comment.
 - **Promoted to gotcha?** Borderline. Add to 16-packaging-electron-forge.md
   with a one-line note on hook-argument semantics.
+
+## Entry 12 — better-sqlite3 12.10.0 vs Electron 42's V8 14.x
+
+- **Date**: 2026-05-17
+- **POC**: capstone Pulse
+- **Feature / surface**: native module rebuild (better-sqlite3) for the
+  packaged Electron 42 target AND for system Node (vitest).
+- **What I expected**: `npm install better-sqlite3 && npx electron-rebuild`
+  would produce a working `better_sqlite3.node` for Electron 42.1.0 —
+  potentially via prebuilt binaries, fall back to source build.
+- **Why I expected it**: research/14-native-modules.md documents
+  `@electron/rebuild` as the canonical path; better-sqlite3 ships prebuilts
+  via prebuild-install; the toolchain (Xcode CLI, Python 3, C++20 compiler)
+  is present and known-working from L1-L5.
+- **What actually happened**: three compile errors in `node_modules/better-sqlite3/src/`:
+  1. `better_sqlite3.cpp:60` — `v8::External::New(isolate, addon)` is missing
+     the `ExternalPointerTypeTag` arg that V8 14.x requires.
+  2. `util/macros.cpp:30` — `info.Data().As<v8::External>()->Value()` likewise
+     missing the tag arg.
+  3. `util/helpers.cpp:89` — `SetNativeDataProperty(..., 0, ...)` is now
+     ambiguous between `AccessorNameSetterCallbackV2`, `AccessorNameSetterCallback`,
+     and `nullptr_t setter` overloads in V8 14.x.
+
+  better-sqlite3 12.10.0 (the latest at the time) targets V8 13.x (Node 24).
+  Electron 42.1.0 ships V8 14.8. The combination won't compile out of the box.
+- **Why this hurts**: A new agent trying to follow the prompt's "SQLite +
+  better-sqlite3" path will hit cryptic C++ compile errors with no obvious
+  signal that the binding's V8 API expectations are stale. They may
+  reasonably assume they need a different toolchain, a different Electron
+  version, or that their machine is broken.
+- **Resolution**: `scripts/patches/better-sqlite3-v8-tag.mjs` rewrites the
+  three sites with `#if V8_MAJOR_VERSION >= 14` preprocessor guards so the
+  SAME source compiles cleanly under both targets:
+  - Node 24 / vitest: `npm rebuild better-sqlite3 --build-from-source`
+    (the `pretest` hook).
+  - Electron 42 / Playwright: `electron-rebuild` (the `pretest:e2e` hook).
+  The patch is idempotent and runs as a `postinstall` step so a fresh
+  `npm install` is self-correcting.
+- **Promoted to gotcha?** YES. Add to 14-native-modules.md when distilling
+  ("native modules trailing V8 by one major version can't compile against
+  the latest Electron; preprocessor-guarded patches are the durable fix").
+- **Reference**: `03_pocs/L-capstone-pulse/scripts/patches/better-sqlite3-v8-tag.mjs`.
+

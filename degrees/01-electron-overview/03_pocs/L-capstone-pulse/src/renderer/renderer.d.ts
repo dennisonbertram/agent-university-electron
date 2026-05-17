@@ -65,6 +65,9 @@ interface RendererApi {
     tray: boolean; journal: boolean; focus: boolean; biometric: boolean;
     dockHidden: boolean; encryptionAvailable: boolean; journalRowsAtBoot: number
   }>
+  testGetRawJournalRows(): Promise<ReadonlyArray<{
+    id: number; ts: string; ciphertextBase64: string; length: number; created_at: number
+  }>>
   onShortcutFired(cb: (payload: { accelerator: string }) => void): () => void
   onOpenUrl(cb: (payload: { url: string; origin: 'open-url' | 'second-instance' }) => void): () => void
   onFocusStateChanged(cb: (payload: FocusStateView) => void): () => void
