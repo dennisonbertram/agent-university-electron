@@ -1,21 +1,21 @@
 /**
- * Renderer-side type declaration for the contextBridge-exposed window.api.
- * The actual exposure lives in src/preload.ts (GREEN commit).
+ * Ambient type declaration for the contextBridge-exposed window.api.
+ * The actual surface is wired in src/preload.ts.
+ *
+ * This file is intentionally a SCRIPT (no top-level import/export) so the
+ * `interface Window` augmentation merges with the global DOM Window type
+ * without needing `declare global`.
  */
 
-export interface RendererApi {
-  /** Called by renderer on DOMContentLoaded; fire-and-forget IPC into main. */
+interface RendererApi {
+  /** Fire-and-forget: tell main the renderer has loaded. */
   rendererReady(userAgent: string): void
-  /** Round-trip; returns { pong: true, ts: number } from main. */
+  /** Request/response: returns { pong: true, ts: number } from main. */
   ping(): Promise<{ pong: true; ts: number }>
-  /** Returns the absolute path to the structured JSON-lines log file. */
+  /** Returns the absolute path to the structured log file. */
   logPath(): Promise<string>
 }
 
-declare global {
-  interface Window {
-    api: RendererApi
-  }
+interface Window {
+  readonly api: RendererApi
 }
-
-export {}

@@ -26,6 +26,7 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "files": ["src/renderer/renderer.d.ts"],
   "exclude": ["node_modules", "dist", "tests"]
 }
