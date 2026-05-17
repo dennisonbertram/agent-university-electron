@@ -192,3 +192,118 @@ If this file is empty when the degree closes, research was too shallow.
 - **Promoted to gotcha?** No — this is an intentional deviation, not a
   surprise. Future agents should swap in real per-state PNG assets when
   shipping a polished menu-bar app.
+
+## Entry 7 — electron-updater appends `?noCache=<token>` to feed URLs
+
+- **Date**: 2026-05-17
+- **POC**: L5
+- **What I expected**: A GET request to `/updates/latest-mac.yml` from
+  `electron-updater`.
+- **What actually happened**: The request URL was
+  `/updates/latest-mac.yml?noCache=1jor721v9` (random token per
+  invocation). The local update server's naive `endsWith('/latest-mac.yml')`
+  path check returned 404, which triggered `updater:error` instead of
+  `updater:update-available`.
+- **Why this hurts**: The 404 surfaced as an unrelated-looking error
+  ("Cannot find channel 'latest-mac.yml' update info: HttpError: 404")
+  rather than "your server's path matching is wrong". A naive reader
+  would suspect the manifest format or the provider config.
+- **Resolution**: strip the query string before path matching:
+  ```js
+  const pathOnly = req.url.split('?')[0] ?? req.url
+  if (pathOnly.endsWith('/latest-mac.yml')) { ... }
+  ```
+  Applied in both `tests/e2e/helpers.ts startUpdateServer()` and
+  `scripts/local-update-server.mjs`.
+- **Promoted to gotcha?** YES. Any future local update server in this
+  degree (and the capstone) MUST strip the query string before path
+  matching. Documented in 18-auto-update.md as a future-edit item if
+  this POC is later distilled.
+
+## Entry 8 — packagerConfig.protocols OVERRIDES extendInfo.CFBundleURLTypes
+
+- **Date**: 2026-05-17
+- **POC**: L5
+- **What I expected**: `packagerConfig.protocols` MERGES with
+  `extendInfo.CFBundleURLTypes` into the packaged Info.plist, with
+  `extendInfo` providing extra keys (like `CFBundleTypeRole`).
+- **What actually happened**: `protocols` produces its own
+  `CFBundleURLTypes` array in the final Info.plist. The
+  `extendInfo.CFBundleURLTypes` from `Info.plist.template` is dropped
+  entirely. The packaged URL types entry does NOT have my
+  `CFBundleTypeRole=Viewer` declaration.
+- **Why this hurts**: A developer who reads the template and assumes
+  the final plist contains everything they put there will be surprised.
+  For URL-type metadata BEYOND the scheme list (like role, icons,
+  RFC-2822 mailto handlers, etc.), they need to declare it through
+  `packagerConfig.protocols` (which takes a custom shape) or skip the
+  `protocols` field and put EVERYTHING in `extendInfo`.
+- **Resolution**: keep the URL scheme registration in `protocols` (more
+  ergonomic) and accept that the template's URL-types declaration is
+  silently dropped during merge. The test only asserts the scheme is
+  present, which works either way.
+- **Promoted to gotcha?** YES. Add to 16-packaging-electron-forge.md as
+  a "merge semantics" note when distilling. The capstone's
+  `pulse://` scheme registration will hit this same edge.
+
+## Entry 9 — electron-updater `forceDevUpdateConfig` is required for unpackaged-app checks
+
+- **Date**: 2026-05-17
+- **POC**: L5
+- **What I expected**: `setFeedURL({ provider: 'generic', url: ... })`
+  followed by `checkForUpdates()` works regardless of whether the app
+  is packaged.
+- **What actually happened**: In dev mode (`npx electron .`),
+  `electron-updater` detects an unpackaged process and SHORT-CIRCUITS
+  the check, returning `update-not-available` without ever hitting the
+  network.
+- **Why this hurts**: The Playwright test pattern is to drive the
+  updater from the dev build (packaging takes 30+ seconds; we don't
+  want to re-package for every updater test). Without the workaround,
+  BT-L5-6 would never observe `update-available` because the network
+  call would never happen.
+- **Resolution**: set
+  `(autoUpdater as { forceDevUpdateConfig: boolean }).forceDevUpdateConfig = true`
+  before `setFeedURL`. The cast is because the property is officially
+  documented but the TypeScript typedef does not expose it (still as
+  of electron-updater 6.8.3).
+- **Promoted to gotcha?** YES. Add to 18-auto-update.md when distilling.
+
+## Entry 10 — `playwright test` wipes `test-results/` at start
+
+- **Date**: 2026-05-17
+- **POC**: L5
+- **What I expected**: Redirecting `npx playwright test > test-results/GREEN.log`
+  captures the run output.
+- **What actually happened**: Playwright cleared `test-results/` BEFORE
+  writing the first line, so the redirect target was deleted along with
+  the directory. The shell still wrote to the (now missing) path; the
+  file ended up nowhere.
+- **Why this hurts**: A future agent capturing CI-style output to
+  `test-results/` will silently lose it.
+- **Resolution**: redirect to a sibling directory (we used `test-output/`)
+  or pipe through `tee` so the output goes to stdout AND the file. The
+  `test-results/` directory is fine for Playwright's own failure
+  artifacts; it just shouldn't double as our manual capture sink.
+- **Promoted to gotcha?** No — this is harness behavior, not a code
+  concern. Documented here to save the next agent a confusing five
+  minutes.
+
+## Entry 11 — Forge `packageAfterCopy(forgeConfig, buildPath)` argument is staging, not final
+
+- **Date**: 2026-05-17
+- **POC**: L5
+- **What I expected**: `buildPath` in `packageAfterCopy(config, buildPath)`
+  is the path to the final `.app` bundle Forge produced.
+- **What actually happened**: `buildPath` is the COPIED STAGING DIR
+  inside Forge's internal temp tree, not the final `out/<App>.app`.
+  Anything written to `buildPath` is included in the asar, NOT in
+  `POC_ROOT`.
+- **Why this hurts**: I want `simulated-signing.md` tracked in git
+  (under POC_ROOT), not buried inside `out/.../app.asar` where it
+  cannot be read by the e2e test.
+- **Resolution**: write to absolute paths under `POC_ROOT` (the source
+  tree), not to `buildPath`. This is what my hook does. Documented in
+  the `forge.config.ts` doc comment.
+- **Promoted to gotcha?** Borderline. Add to 16-packaging-electron-forge.md
+  with a one-line note on hook-argument semantics.

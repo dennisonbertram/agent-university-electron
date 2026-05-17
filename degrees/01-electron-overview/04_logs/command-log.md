@@ -548,3 +548,51 @@ Behavioral status:
 - SKIP @long-running: BT-L5-4 (universal binary; forge config supports it).
 - SKIP @signed-only (NOT in test suite, documented only): real
   `codesign --verify` and `xcrun stapler validate` — require Apple Dev cert.
+
+## L5-3 — 2026-05-17 — L5 REGRESSION run
+
+```
+cd .../03_pocs/L5-packaging-signing-update
+npx playwright test
+```
+
+Output (full):
+```
+Running 16 tests using 1 worker
+
+  ✓   1 tests/e2e/crash-reporter.spec.ts:13:5 › BT-L5-8 (410ms)
+  ✓   2 tests/e2e/packaged-boot.spec.ts:11:5 › BT-L5-10 (1.2s)
+  ✓   3 tests/e2e/packaging.spec.ts:24:7 › BT-L5-1 (1ms)
+  ✓   4 tests/e2e/packaging.spec.ts:39:7 › BT-L5-2 (9.9s)
+  ✓   5 tests/e2e/packaging.spec.ts:55:7 › BT-L5-3 (2ms)
+  ✓   6 tests/e2e/packaging.spec.ts:76:7 › BT-L5-9 (1ms)
+  -   7 tests/e2e/packaging.spec.ts:90:7 › BT-L5-4 [skip @long-running]
+  ✓   8 tests/e2e/regression.spec.ts:30:7 › R-L5-1 (0ms)
+  ✓   9 tests/e2e/regression.spec.ts:39:7 › R-L5-2 (0ms)
+  ✓  10 tests/e2e/regression.spec.ts:46:7 › R-L5-3 (0ms)
+  ✓  11 tests/e2e/regression.spec.ts:53:7 › R-L5-4 (1ms)
+  ✓  12 tests/e2e/regression.spec.ts:77:7 › R-L5-5 (1ms)
+  ✓  13 tests/e2e/signing-simulation.spec.ts:24:7 › BT-L5-5 (1ms)
+  ✓  14 tests/e2e/signing-simulation.spec.ts:50:7 › R-L5-4 (0ms)
+  ✓  15 tests/e2e/updater.spec.ts:24:7 › BT-L5-6 (399ms)
+  ✓  16 tests/e2e/updater.spec.ts:61:7 › BT-L5-7 (378ms)
+
+  1 skipped
+  15 passed (12.6s)
+```
+
+vitest carry-forward:
+```
+Test Files  15 passed (15)
+     Tests  126 passed (126)
+```
+
+Documents written:
+- README.md (top-level POC overview).
+- test-plan.md (BT/R → test file mapping + perf budget).
+- poc-report.md (decisions, behavioral status, invariants for capstone).
+- 04_logs/decision-log.md (Decision 11: hybrid build chain).
+- 04_logs/expectation-gap-ledger.md (Entries 7-11: updater query string,
+  protocols-vs-extendInfo merge, forceDevUpdateConfig escape, playwright
+  result-dir wipe, packageAfterCopy buildPath semantics).
+- 04_logs/deployment-log.md (Attempts 1-4 from L5-2 commit).
