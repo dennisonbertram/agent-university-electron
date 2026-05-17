@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Pulse capstone Info.plist template — `forge.config.ts` merges this
+       via `packagerConfig.extendInfo`. Per Entry 8 in expectation-gap-ledger,
+       `packagerConfig.protocols` overrides the CFBundleURLTypes array from
+       extendInfo, so the canonical URL-scheme list lives in `protocols`
+       (`pulse`). We still declare CFBundleURLTypes here as a defense-in-
+       depth so a future Forge version that removes the protocols-override
+       still produces a working bundle.
+
+       LSUIElement = true makes Pulse a menu-bar-only ("agent") app: NO dock
+       icon, NO appearance in the application switcher. Combined with
+       `app.dock.hide()` in main.ts (the dev-mode path), this is the
+       intended menu-bar-only experience for BT-C-10. -->
+  <key>LSUIElement</key>
+  <true/>
+
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>Pulse</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>pulse</string>
+      </array>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+    </dict>
+  </array>
+
+  <key>CFBundleShortVersionString</key>
+  <string>1.0.0</string>
+
+  <key>NSHumanReadableCopyright</key>
+  <string>Copyright (c) 2026 Agent University — Pulse capstone POC. All rights reserved.</string>
+</dict>
+</plist>

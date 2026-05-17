@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pulse</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        font-size: 13px;
+      }
+      body { margin: 0; padding: 12px; }
+      h1 { font-size: 14px; margin: 0 0 8px; }
+      #status { color: #666; margin: 0 0 12px; }
+      .row { margin-bottom: 8px; }
+      textarea {
+        width: 100%; min-height: 60px; resize: vertical;
+        font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        font-size: 13px; padding: 6px;
+      }
+      button {
+        padding: 6px 12px;
+        font: inherit;
+      }
+      #entries {
+        list-style: none; padding: 0; margin: 0;
+        max-height: 220px; overflow: auto;
+        border: 1px dashed #888; padding: 6px;
+        font-size: 12px;
+      }
+      #entries li { padding: 2px 0; border-bottom: 1px solid rgba(0,0,0,0.08); }
+      #entries li:last-child { border-bottom: 0; }
+      .locked { color: #999; font-style: italic; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Pulse</h1>
+      <p id="status">Booting…</p>
+      <div class="row" id="focus-row">
+        <strong>Focus:</strong> <span id="focus-state">idle</span>
+      </div>
+      <div class="row">
+        <textarea id="journal-text" placeholder="Quick capture…"></textarea>
+      </div>
+      <div class="row">
+        <button id="journal-add">Add entry</button>
+        <button id="journal-unlock">Unlock journal</button>
+      </div>
+      <ul id="entries">
+        <li class="locked">Locked — unlock to view entries.</li>
+      </ul>
+    </main>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

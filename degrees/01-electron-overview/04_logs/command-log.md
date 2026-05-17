@@ -596,3 +596,21 @@ Documents written:
   protocols-vs-extendInfo merge, forceDevUpdateConfig escape, playwright
   result-dir wipe, packageAfterCopy buildPath semantics).
 - 04_logs/deployment-log.md (Attempts 1-4 from L5-2 commit).
+
+## 2026-05-17 — Capstone Pulse — RED commit prep
+
+```
+# Scaffold + install + first build
+cd 03_pocs/L-capstone-pulse
+npm install         # 668 packages, 26s
+npm run build       # tsc + esbuild bundle (preload) + static-copy (renderer)
+npx vitest run      # ⇒ 28 failed, 59 passed (87 total) — RED confirmed
+npx playwright test tests/e2e/focus.spec.ts -g 'BT-C-1'
+                    # ⇒ timeout after 5000ms waiting for `focus:start:25min`
+                    # `journal-store:install-failed`, `passphrase:install-failed`,
+                    # `biometric:install-failed`, `focus-engine:install-failed`
+                    # confirm RED at runtime — stub modules throw on install.
+```
+
+Carried Entry 10 (Playwright wipes `test-results/` at start) — RED logs landed in `test-output/` instead.
+

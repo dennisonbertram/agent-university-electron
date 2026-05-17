@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Hardened-runtime entitlements for the Pulse capstone.
+       Reference: research/17-code-signing-notarization.md +
+       research/15-system-preferences-touchid.md.
+
+       Pulse-specific additions vs L5:
+       - The app uses systemPreferences.promptTouchID(). Apple's docs do
+         not enumerate an explicit Touch ID entitlement for hardened-
+         runtime apps (OQ-23.6); we keep `disable-library-validation` true
+         and `app-sandbox` false which the community-evidence path supports.
+  -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+  <false/>
+
+  <key>com.apple.security.cs.disable-library-validation</key>
+  <true/>
+
+  <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+  <false/>
+
+  <key>com.apple.security.app-sandbox</key>
+  <false/>
+
+  <key>com.apple.security.network.client</key>
+  <true/>
+</dict>
+</plist>

@@ -1,0 +1,7 @@
+node_modules/
+dist/
+out/
+.cache/
+.crash-boot-logs/
+test-results/
+*.log
